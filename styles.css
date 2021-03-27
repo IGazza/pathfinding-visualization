@@ -1,0 +1,53 @@
+* {
+    font-family: sans-serif;
+}
+
+html, body {
+    margin: 0;
+}
+canvas {
+    background-color: grey;
+    display: block;
+}
+
+.app {
+    display: flex;
+}
+
+.options {
+    background-color: darkslategrey;
+}
+
+.options__title {
+    font-size: 2rem;
+    padding: 0 20px;
+}
+
+.options__option {
+    display: flex;
+    padding: 10px 20px;
+    border-top: 2px solid;
+    font-size: 1.5rem;
+}
+
+.options__option:hover {
+    background-color: darkgrey;
+    cursor: pointer;
+}
+
+.options__symbol {
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+.options__symbol--blue {
+    background-color: blue;
+}
+.options__symbol--red {
+    background-color: red;
+}
+.options__symbol--black {
+    background-color: black;
+}
