@@ -4,10 +4,20 @@
 
 html, body {
     margin: 0;
+    background-color: lightgray;
 }
 canvas {
     background-color: grey;
     display: block;
+    margin: 20px auto;
+    border: 2px solid black;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 1);
+}
+
+.heading__primary {
+    font-size: 4rem;
+    text-align: center;
+    margin: 10px;
 }
 
 .app {
@@ -15,7 +25,23 @@ canvas {
 }
 
 .options {
-    background-color: darkslategrey;
+    display: flex;
+}
+
+.options__tiles {
+    flex: 1;
+}
+
+.options__control {
+    flex: 3;
+    border-left: 2px solid;
+    display: flex;
+    justify-content: space-around;
+    align-content: center;
+}
+
+.filler {
+    flex: 1;
 }
 
 .options__title {
@@ -26,8 +52,29 @@ canvas {
 .options__option {
     display: flex;
     padding: 10px 20px;
-    border-top: 2px solid;
+    border: 2px solid;
     font-size: 1.5rem;
+}
+
+.options__button {
+    font-size: 2.5rem;
+    width: 40%;
+    border-radius: 30px;
+    display: block;
+    border-width: 5px;
+}
+
+.options__button:hover {
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1);
+}
+
+.btn--run:hover {
+    background-color: lightgreen;
+}
+
+.btn--reset:hover {
+    background-color: pink;
 }
 
 .options__option:hover {
@@ -36,8 +83,8 @@ canvas {
 }
 
 .options__symbol {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     border-radius: 10px;
     margin-right: 10px;
 }

@@ -2,8 +2,8 @@
 // Added release fix
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
-const gridWidth = 50;
-const gridHeight = 50;
+const gridWidth = 65;
+const gridHeight = 40;
 const size = 8;
 const width = canvas.width = gridWidth * size;
 const height = canvas.height = gridHeight * size;

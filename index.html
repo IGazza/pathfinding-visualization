@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,10 +13,16 @@
 
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
+    <header class="">
+        <h1 class="heading__primary">Pathfinding</h1>
+    </header>
     <div class="app">
-        <div id="options" class="options">
-            <h2 class="options__title">Options</h2>
+        <canvas id="canvas"></canvas>
+    </div>
+    <div id="options" class="options">
+        <div class="options__tiles">
             <div class="options__option" onclick="setPaintMode('START')">
                 <div class="options__symbol options__symbol--blue"></div>
                 <div class="options__name">Start</div>
@@ -29,8 +36,11 @@
                 <div class="options__name">Obstacle</div>
             </div>
         </div>
-        <canvas id="canvas"></canvas>
+        <div class="options__control">
+            <button id="run" class="options__button btn--run">Run</button>
+            <button id="reset" class="options__button btn--reset">Reset</button>
+        </div>
     </div>
-    <button id="run">Run</button>
 </body>
+
 </html>
