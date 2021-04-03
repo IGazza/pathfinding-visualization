@@ -89,12 +89,28 @@ const Grid = (function() {
             return tiles.find(tile => tile.isEnd);
         },
 
+        getMaxPathDistance() {
+            // Find the max pathDistance
+            // THen get element attaining that
+            const tilePathDistances = tiles.map(tile => tile.pathDistance || 0);
+            return Math.max.apply(null, tilePathDistances);
+        },
+
         randomiseGrid(probability) {
             for (let tile of tiles) {
                 if (!tile.isStart && !tile.isEnd) {
                     if (Math.random() < probability) {
                         tile.type = tileTypes.OBSTACLE;
                     }
+                }
+            }
+        },
+
+        reset() {
+            for (let tile of tiles) {
+                if (tile.type !== tileTypes.OBSTACLE) {
+                    tile.type = tileTypes.EMPTY;
+                    tile.inQueue = false;
                 }
             }
         }

@@ -1,6 +1,6 @@
-const gridWidth = 65;
-const gridHeight = 40;
-const size = 8;
+const gridWidth = 20;
+const gridHeight = 20;
+const size = 20;
 const canvas = new Canvas("canvas");
 canvas.setTileSize(size);
 canvas.setDimensions(gridWidth * size, gridHeight * size);
@@ -13,7 +13,7 @@ canvas.drawGrid(Grid.getTiles());
 
 const runButton = document.getElementById("run");
 runButton.onclick = function () {
-    PathFinding.BFS(
+    PathFinding.lee(
         Grid.getTiles(),
         gridWidth,
         Grid.getStart(),

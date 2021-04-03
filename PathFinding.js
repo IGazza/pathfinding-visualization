@@ -72,7 +72,7 @@ const PathFinding = {
         const nodeQueue = [];
 
         const intervalID = setInterval(() => {
-            if(currentNode && !this.nodesAreEqual(currentNode, endNode)) {
+            if (currentNode && !this.nodesAreEqual(currentNode, endNode)) {
                 for (let dir of this.directions()) {
                     const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
                     const newNode = dir(grid, cols, currentIndex);
@@ -111,5 +111,58 @@ const PathFinding = {
         //     currentNode = nodeQueue.shift();
         // }
         return currentNode;
+    },
+
+    lee(grid, cols, startNode, endNode) {
+        startNode.start = true;
+        endNode.end = true;
+
+        let currentNode = startNode;
+        startNode.inQueue = true;
+        let pathDistance = 0;
+        startNode.pathDistance = pathDistance;
+
+        let currentWave = [startNode];
+        let nextWave = [];
+
+        const intervalID = setInterval(() => {
+            // Check that there are entries in both queues
+            if (currentWave.length > 0) {
+                currentNode = currentWave.shift();
+                if (!this.nodesAreEqual(currentNode, endNode)) {
+                    currentNode.type = "HEAD";
+                    for (let dir of this.directions()) {
+                        const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
+                        const newNode = dir(grid, cols, currentIndex);
+                        if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
+                            newNode.previous = currentNode;
+                            newNode.type = "QUEUED";
+                            newNode.inQueue = true;
+                            newNode.pathDistance = pathDistance;
+                            nextWave.push(newNode);
+                        }
+                    }
+                    canvas.drawGrid(Grid.getTiles());
+                    currentNode.type = "ROUTED";
+                } else {
+                    clearInterval(intervalID);
+                    this.backtrackChain(endNode, startNode);
+                    canvas.drawGrid(Grid.getTiles(), "DISTANCE");
+                }
+            } else {
+                if (nextWave.length > 0) {
+                    currentWave = [...nextWave];
+                    nextWave = [];
+                    pathDistance++;
+                } else {
+                    clearInterval(intervalID);
+                    canvas.drawGrid(Grid.getTiles(), "DISTANCE");
+                }
+            }
+        }, this.refreshTime);
+    },
+
+    leeBacktrack(endNode) {
+
     }
 }

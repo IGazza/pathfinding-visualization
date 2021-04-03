@@ -65,9 +65,15 @@ class Canvas {
         return Math.max(this.height, this.width);
     }
 
-    drawGrid(grid) {
+    drawGrid(grid, mode = "DEFAULT") {
+        const maxDistance = Grid.getMaxPathDistance();
         for (let tile of grid) {
-            const tileColour = this.getTileColour(tile);
+            let tileColour;
+            if (mode === "DEFAULT") {
+                tileColour = this.getTileColour(tile);
+            } else if (mode === "DISTANCE") {
+                tileColour = this.getTileDistanceColour(tile, maxDistance);
+            }
             this.context.fillStyle = tileColour;
             this.context.fillRect(
                 tile.col * this.tileSize,
@@ -95,6 +101,34 @@ class Canvas {
         } else if (tile.type === "PATH") {
             return "white";
         }
+    }
+
+    getTileDistanceColour(tile, maxPathDistance) {
+        if (tile.isEnd) return "red";
+        if (tile.isStart) return "blue";
+        if (!tile.pathDistance) {
+            return this.getTileColour(tile)
+        }
+        // Just lerp the values betwenn 50 and 255 and the red channel
+        const RANGE = 255;
+        const redChannel
+            = Math.floor(tile.pathDistance / maxPathDistance * RANGE);
+        const blueChannel
+            = Math.floor(RANGE * (1 - tile.pathDistance / maxPathDistance));
+        const colour = this.convertRGBToHex([redChannel, 0, blueChannel]);
+        return colour;
+    }
+
+    convertRGBToHex(rgb) {
+        const rgbInHexFormat = rgb.map(c => {
+            let channelString = c.toString(16);
+            if (channelString.length === 1) {
+                channelString = "0" + channelString;
+            }
+            return channelString;
+        });
+        const hexColourString = rgbInHexFormat.join('');
+        return `#${hexColourString}`;
     }
 
     clear() {
