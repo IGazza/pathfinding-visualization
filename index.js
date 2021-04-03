@@ -13,7 +13,7 @@ canvas.drawGrid(Grid.getTiles());
 
 const runButton = document.getElementById("run");
 runButton.onclick = function () {
-    PathFinding.lee(
+    PathFinding.leastTurns(
         Grid.getTiles(),
         gridWidth,
         Grid.getStart(),

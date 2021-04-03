@@ -1,5 +1,5 @@
 const PathFinding = {
-    refreshTime: 1,
+    refreshTime: 10,
 
     convertIndexToRowCol(index, cols) {
         const row = Math.floor(index / cols);
@@ -36,6 +36,33 @@ const PathFinding = {
                 return grid[newIndex];
             },
         ]
+    },
+
+    directionsNamed() {
+        return {
+            UP: (grid, cols, index) => { // UP
+                const { row, col } = this.convertIndexToRowCol(index, cols);
+                const newIndex = this.convertRowColToIndex(row - 1, col, cols);
+                return grid[newIndex];
+            },
+            RIGHT: (grid, cols, index) => { // RIGHT
+                const { row, col } = this.convertIndexToRowCol(index, cols);
+                if (col === cols - 1) return null; // Index can wrap at the border
+                const newIndex = this.convertRowColToIndex(row, col + 1, cols);
+                return grid[newIndex];
+            },
+            DOWN: (grid, cols, index) => { // DOWN
+                const { row, col } = this.convertIndexToRowCol(index, cols);
+                const newIndex = this.convertRowColToIndex(row + 1, col, cols);
+                return grid[newIndex];
+            },
+            LEFT: (grid, cols, index) => {// LEFT
+                const { row, col } = this.convertIndexToRowCol(index, cols);
+                if (col === 0) return null; // Index can wrap at the border
+                const newIndex = this.convertRowColToIndex(row, col - 1, cols);
+                return grid[newIndex];
+            },
+        }
     },
 
     nodesAreEqual(node1, node2) {
@@ -142,8 +169,8 @@ const PathFinding = {
                             nextWave.push(newNode);
                         }
                     }
-                    canvas.drawGrid(Grid.getTiles());
                     currentNode.type = "ROUTED";
+                    canvas.drawGrid(Grid.getTiles());
                 } else {
                     clearInterval(intervalID);
                     this.backtrackChain(endNode, startNode);
@@ -162,7 +189,59 @@ const PathFinding = {
         }, this.refreshTime);
     },
 
-    leeBacktrack(endNode) {
+    leastTurns(grid, cols, startNode, endNode) {
+        startNode.start = true;
+        endNode.end = true;
 
+        let currentNode = startNode;
+        startNode.inQueue = true;
+        let turnCount = 0;
+        startNode.turnCount = turnCount;
+
+        let currentWave = [startNode];
+        let nextWave = [];
+
+        const intervalID = setInterval(() => {
+            // Check that there are entries in both queues
+            if (currentWave.length > 0) {
+                currentNode = currentWave.shift();
+                if (!this.nodesAreEqual(currentNode, endNode)) {
+                    currentNode.type = "HEAD";
+                    for (let [direction, dir] of Object.entries(this.directionsNamed())) {
+                        const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
+                        const newNode = dir(grid, cols, currentIndex);
+                        if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
+                            // CHeck that there is a pointing direction (handle start case)
+                            newNode.pointingDirection = direction;
+                            newNode.previous = currentNode;
+                            newNode.type = "QUEUED";
+                            newNode.inQueue = true;
+                            if (!currentNode.pointingDirection || direction === currentNode.pointingDirection) {
+                                newNode.turnCount = turnCount;
+                                currentWave.push(newNode);
+                            } else {
+                                newNode.turnCount = turnCount + 1;
+                                nextWave.push(newNode);
+                            }
+                        }
+                    }
+                    canvas.drawGrid(Grid.getTiles());
+                    currentNode.type = "ROUTED";
+                } else {
+                    clearInterval(intervalID);
+                    this.backtrackChain(endNode, startNode);
+                    canvas.drawGrid(Grid.getTiles(), "DISTANCE");
+                }
+            } else {
+                if (nextWave.length > 0) {
+                    currentWave = [...nextWave];
+                    nextWave = [];
+                    turnCount++;
+                } else {
+                    clearInterval(intervalID);
+                    canvas.drawGrid(Grid.getTiles(), "DISTANCE");
+                }
+            }
+        }, this.refreshTime);
     }
 }
