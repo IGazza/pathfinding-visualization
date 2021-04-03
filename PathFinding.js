@@ -59,7 +59,7 @@ const PathFinding = {
                 path.push(currentNode);
                 clearInterval(intervalID);
             }
-            Graphics.drawGrid(grid);
+            canvas.drawGrid(Grid.getTiles());
         }, this.refreshTime);
     },
 
@@ -86,7 +86,7 @@ const PathFinding = {
                 currentNode.type = "ROUTED";
                 currentNode = nodeQueue.shift();
                 if (currentNode) currentNode.type = "HEAD";
-                Graphics.drawGrid(grid);
+                canvas.drawGrid(Grid.getTiles());
             } else {
                 clearInterval(intervalID);
                 if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
