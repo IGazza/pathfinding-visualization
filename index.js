@@ -20,3 +20,9 @@ runButton.onclick = function () {
         Grid.getEnd()
     );
 }
+
+const resetButton = document.getElementById("reset");
+resetButton.onclick = function () {
+    Grid.reset();
+    canvas.drawGrid(Grid.getTiles());
+}
