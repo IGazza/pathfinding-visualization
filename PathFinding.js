@@ -1,6 +1,14 @@
 const PathFinding = {
     refreshTime: 10,
 
+    currentPathLength: 0,
+    currentPathTurnsCount: 0,
+
+    resetMetrics() {
+        this.currentPathLength = 0;
+        this.currentPathTurnsCount = 0;
+    },
+
     convertIndexToRowCol(index, cols) {
         const row = Math.floor(index / cols);
         const col = Math.floor(index % cols);
@@ -79,7 +87,15 @@ const PathFinding = {
             if (!this.nodesAreEqual(currentNode, startNode) && currentNode) {
                 currentNode.type = "PATH";
                 path.push(currentNode);
+                const previousNode = currentNode.previous;
+                // Count the turns
+                if (currentNode.pointingDirection && previousNode.pointingDirection) {
+                    if (currentNode.pointingDirection !== previousNode.pointingDirection) {
+                        this.currentPathTurnsCount++;
+                    }
+                }
                 currentNode = currentNode.previous;
+                this.currentPathLength++;
             } else {
                 // At the start node
                 currentNode.type = "PATH";
@@ -87,6 +103,8 @@ const PathFinding = {
                 clearInterval(intervalID);
             }
             canvas.drawGrid(Grid.getTiles());
+            document.getElementById("path-length").innerText = this.currentPathLength;
+            document.getElementById("turns-count").innerText = this.currentPathTurnsCount;
         }, this.refreshTime);
     },
 
@@ -100,10 +118,11 @@ const PathFinding = {
 
         const intervalID = setInterval(() => {
             if (currentNode && !this.nodesAreEqual(currentNode, endNode)) {
-                for (let dir of this.directions()) {
+                for (let [direction, dir] of Object.entries(this.directionsNamed())) {
                     const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
                     const newNode = dir(grid, cols, currentIndex);
                     if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
+                        newNode.pointingDirection = direction;
                         newNode.previous = currentNode;
                         nodeQueue.push(newNode);
                         newNode.type = "QUEUED";
@@ -122,22 +141,6 @@ const PathFinding = {
                 console.log(currentNode);
             }
         }, this.refreshTime);
-
-        // while (!nodesAreEqual(currentNode, endNode) && currentNode) {
-        //     for (let dir of this.directions()) {
-        //         const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
-        //         const newNode = dir(grid, cols, currentIndex);
-        //         if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
-        //             newNode.previous = currentNode;
-        //             nodeQueue.push(newNode);
-        //             newNode.type = "QUEUED";
-        //             newNode.inQueue = true;
-        //         }
-        //     }
-        //     currentNode.type = "ROUTED";
-        //     currentNode = nodeQueue.shift();
-        // }
-        return currentNode;
     },
 
     lee(grid, cols, startNode, endNode) {

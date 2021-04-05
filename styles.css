@@ -8,20 +8,45 @@ html, body {
 }
 canvas {
     background-color: grey;
-    display: block;
-    margin: 20px auto;
     border: 2px solid black;
     box-shadow: 0 0 20px rgba(0, 0, 0, 1);
+}
+
+
+.app {
+    display: flex;
+    margin: 20px auto;
+    justify-content: center;
+}
+
+.metrics {
+    text-align: center;
+    background-color: white;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 1);
+}
+
+.metrics__title {
+    font-size: 2.5rem;
+    margin: 5px 40px 10px;
+}
+
+.metric__title {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+}
+
+.metric__value {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0;
 }
 
 .heading__primary {
     font-size: 4rem;
     text-align: center;
     margin: 10px;
-}
-
-.app {
-    display: flex;
 }
 
 .options {

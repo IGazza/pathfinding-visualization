@@ -15,6 +15,9 @@ let pathfindingAlgorithm = PathFinding.BFS;
 
 const runButton = document.getElementById("run");
 runButton.onclick = function () {
+    PathFinding.resetMetrics();
+    document.getElementById("path-length").innerText = 0;
+    document.getElementById("turns-count").innerText = 0;
     pathfindingAlgorithm.bind(PathFinding)(
         Grid.getTiles(),
         gridWidth,

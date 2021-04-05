@@ -19,8 +19,18 @@
     <header class="">
         <h1 class="heading__primary">Pathfinding</h1>
     </header>
-    <div class="app">
-        <canvas id="canvas"></canvas>
+    <div class="main">
+        <div class="app">
+            <canvas id="canvas"></canvas>
+            <div class="metrics">
+                <h2 class="metrics__title">Metrics</h2>
+                <hr>
+                <p class="metric__title">Path length</p>
+                <p class="metric__value" id="path-length">0</p>
+                <p class="metric__title">Number of turns</p>
+                <p class="metric__value" id="turns-count">0</p>
+            </div>
+        </div>
     </div>
     <div id="options" class="options">
         <div class="options__algorithm">
