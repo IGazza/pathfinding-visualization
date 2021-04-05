@@ -28,8 +28,23 @@ canvas {
     display: flex;
 }
 
+.options__title {
+    margin: 0 0 20px;
+    font-size: 3rem;
+    padding: 0 20px;
+}
+
 .options__tiles {
     flex: 1;
+}
+
+.options__algorithm {
+    flex: 2;
+    text-align: center;
+}
+
+.options__algorithm-select {
+    font-size: 2rem;
 }
 
 .options__control {
@@ -42,11 +57,6 @@ canvas {
 
 .filler {
     flex: 1;
-}
-
-.options__title {
-    font-size: 2rem;
-    padding: 0 20px;
 }
 
 .options__option {

@@ -8,12 +8,14 @@ canvas.setDimensions(gridWidth * size, gridHeight * size);
 Grid.initialiseTiles(gridHeight, gridWidth);
 Grid.setStart(0, 0);
 Grid.setEnd(gridHeight - 1, gridWidth - 1);
-Grid.randomiseGrid(0.3)
+Grid.randomiseGrid(0.2)
 canvas.drawGrid(Grid.getTiles());
+
+let pathfindingAlgorithm = PathFinding.BFS;
 
 const runButton = document.getElementById("run");
 runButton.onclick = function () {
-    PathFinding.leastTurns(
+    pathfindingAlgorithm.bind(PathFinding)(
         Grid.getTiles(),
         gridWidth,
         Grid.getStart(),
@@ -25,4 +27,26 @@ const resetButton = document.getElementById("reset");
 resetButton.onclick = function () {
     Grid.reset();
     canvas.drawGrid(Grid.getTiles());
+}
+
+const selectElement = document.getElementById("algorithm-select");
+selectElement.onchange = function() {
+    // Map the value ID to a pathfinding algorithm
+    switch (this.value) {
+        case "1":
+            pathfindingAlgorithm = PathFinding.BFS;
+            break;
+        case "2":
+            console.warn('Depth first search not implemented yet');
+            break;
+        case "3":
+            pathfindingAlgorithm = PathFinding.leastTurns;
+            break;
+        case "4":
+            console.warn('A* not implemented yet');
+            break;
+        default:
+            pathfindingAlgorithm = PathFinding.BFS;
+            break;
+    }
 }

@@ -23,6 +23,16 @@
         <canvas id="canvas"></canvas>
     </div>
     <div id="options" class="options">
+        <div class="options__algorithm">
+            <h2 class="options__title">Algorithm</h2>
+            <select name="algorithm" id="algorithm-select" class="options__algorithm-select">
+                <option value="1">Breadth First Search (BFS)</option>
+                <option value="2">Depth First Search (DFS)</option>
+                <option value="3">Least turns</option>
+                <option value="4">A*</option>
+            </select>
+        </div>
+
         <div class="options__tiles">
             <div class="options__option" onclick="setPaintMode('START')">
                 <div class="options__symbol options__symbol--blue"></div>
@@ -37,6 +47,7 @@
                 <div class="options__name">Obstacle</div>
             </div>
         </div>
+
         <div class="options__control">
             <button id="run" class="options__button btn--run">Run</button>
             <button id="reset" class="options__button btn--reset">Reset</button>
