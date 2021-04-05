@@ -34,6 +34,10 @@ const Grid = (function() {
         for (let tile of tiles) tile.isEnd = false;
     }
 
+    const clearObstacles = () => {
+        for (let tile of tiles)  tile.type = tileTypes.EMPTY;
+    }
+
     let tiles = [];
     let rows = 0;
     let cols = 0;
@@ -97,6 +101,7 @@ const Grid = (function() {
         },
 
         randomiseGrid(probability) {
+            clearObstacles();
             for (let tile of tiles) {
                 if (!tile.isStart && !tile.isEnd) {
                     if (Math.random() < probability) {

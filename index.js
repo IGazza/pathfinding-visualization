@@ -1,4 +1,4 @@
-const gridWidth = 20;
+const gridWidth = 40;
 const gridHeight = 20;
 const size = 20;
 const canvas = new Canvas("canvas");
@@ -29,6 +29,12 @@ runButton.onclick = function () {
 const resetButton = document.getElementById("reset");
 resetButton.onclick = function () {
     Grid.reset();
+    canvas.drawGrid(Grid.getTiles());
+}
+
+const randomiseButton = document.getElementById("randomise");
+randomiseButton.onclick = function () {
+    Grid.randomiseGrid(0.2);
     canvas.drawGrid(Grid.getTiles());
 }
 
