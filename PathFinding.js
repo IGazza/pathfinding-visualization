@@ -192,6 +192,55 @@ const PathFinding = {
         }, this.refreshTime);
     },
 
+    goingBackwards(toDirection, fromDirection) {
+        if (toDirection === "RIGHT" && fromDirection === "LEFT") return true;
+        if (toDirection === "UP" && fromDirection === "DOWN") return true;
+        if (toDirection === "LEFT" && fromDirection === "RIGHT") return true;
+        if (toDirection === "DOWN" && fromDirection === "UP") return true;
+        return false;
+    },
+
+    turnsCounting(node, direction) {
+        if (node.pointingDirections.length === 0) return 0; // Starting node has no pointing direction, so no turn
+        if (node.previousPointingDirection === direction) return 0; // No turn needed
+        return 1;
+    },
+
+    backtrackLeastTurnsChain(endNode, startNode) {
+        const path = [];
+        let currentNode = endNode;
+        const intervalID = setInterval(() => {
+            if (!this.nodesAreEqual(currentNode, startNode) && currentNode) {
+                currentNode.type = "PATH";
+                path.push(currentNode);
+
+                let previousNode;
+                if (currentNode.previous.length > 1) {
+                    // Get the one that doesn't turn
+                    null; // for now
+                } else {
+                    previousNode = currentNode.previous[0]; // Should only be one entry
+                }
+                // Count the turns
+                if (currentNode.pointingDirection && previousNode.pointingDirection) {
+                    if (currentNode.pointingDirection !== previousNode.pointingDirection) {
+                        this.currentPathTurnsCount++;
+                    }
+                }
+                currentNode = previousNode;
+                this.currentPathLength++;
+            } else {
+                // At the start node
+                currentNode.type = "PATH";
+                path.push(currentNode);
+                clearInterval(intervalID);
+            }
+            canvas.drawGrid(Grid.getTiles());
+            document.getElementById("path-length").innerText = this.currentPathLength;
+            document.getElementById("turns-count").innerText = this.currentPathTurnsCount;
+        }, this.refreshTime);
+    },
+
     leastTurns(grid, cols, startNode, endNode) {
         startNode.start = true;
         endNode.end = true;
@@ -208,23 +257,54 @@ const PathFinding = {
             // Check that there are entries in both queues
             if (currentWave.length > 0) {
                 currentNode = currentWave.shift();
+                // Initialise direction and previous links
+                if (!currentNode.pointingDirections) currentNode.pointingDirections = [];
+                if (!currentNode.previous) currentNode.previous = [];
+                
                 if (!this.nodesAreEqual(currentNode, endNode)) {
                     currentNode.type = "HEAD";
                     for (let [direction, dir] of Object.entries(this.directionsNamed())) {
                         const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
                         const newNode = dir(grid, cols, currentIndex);
-                        if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
-                            // CHeck that there is a pointing direction (handle start case)
-                            newNode.pointingDirection = direction;
-                            newNode.previous = currentNode;
-                            newNode.type = "QUEUED";
-                            newNode.inQueue = true;
-                            if (!currentNode.pointingDirection || direction === currentNode.pointingDirection) {
-                                newNode.turnCount = turnCount;
-                                currentWave.push(newNode);
-                            } else {
-                                newNode.turnCount = turnCount + 1;
-                                nextWave.push(newNode);
+                        // Make sure not going back on yourself
+                        const tileIsValid = newNode && newNode.type !== Grid.tileTypes.OBSTACLE;
+                        if (tileIsValid && !this.goingBackwards(direction, currentNode.previousPointingDirection)) {
+                            // Does the next node had a turn count, if not just assing it and put in the correct queue
+                            const turn = this.turnsCounting(currentNode, direction);
+                            const turnsToNeighbour = turnCount + turn;
+
+                            if (newNode.turnCount === undefined) { // No turn count set yet
+                                newNode.turnCount = turnsToNeighbour;
+                                if (!newNode.previous) {
+                                    newNode.previous = [currentNode];
+                                } else {
+                                    newNode.previous.push(currentNode);
+                                }
+                                newNode.previousPointingDirection = direction;
+                                newNode.type = "QUEUED";
+                                if (turn) {
+                                    nextWave.push(newNode);
+                                } else {
+                                    currentWave.push(newNode);
+                                }
+                                currentNode.pointingDirections.push(direction);
+                                
+                            } else { // Turn count is set
+                                if (turnsToNeighbour < newNode.turnCount) {
+                                    currentNode.pointingDirections.push(direction);
+                                    newNode.turnCount = turnsToNeighbour;
+                                    newNode.previous = [currentNode]; // All other previous node has longer turn counts so remove them
+                                    newNode.previousPointingDirection = direction;
+                                    newNode.type = "QUEUED";
+                                    currentWave.push(newNode);
+
+                                } else if (turnsToNeighbour === newNode.turnCount) {
+                                    currentNode.pointingDirections.push(direction);
+                                    newNode.previous.push(currentNode); // Add the current node to the list of previous nodes
+                                    newNode.previousPointingDirection = direction;
+                                    newNode.type = "QUEUED";
+                                    
+                                }
                             }
                         }
                     }
@@ -232,7 +312,7 @@ const PathFinding = {
                     currentNode.type = "ROUTED";
                 } else {
                     clearInterval(intervalID);
-                    this.backtrackChain(endNode, startNode);
+                    this.backtrackLeastTurnsChain(endNode, startNode);
                     canvas.drawGrid(Grid.getTiles(), "DISTANCE");
                 }
             } else {

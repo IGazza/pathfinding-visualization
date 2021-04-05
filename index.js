@@ -1,4 +1,4 @@
-const gridWidth = 40;
+const gridWidth = 20;
 const gridHeight = 20;
 const size = 20;
 const canvas = new Canvas("canvas");
@@ -8,7 +8,7 @@ canvas.setDimensions(gridWidth * size, gridHeight * size);
 Grid.initialiseTiles(gridHeight, gridWidth);
 Grid.setStart(0, 0);
 Grid.setEnd(gridHeight - 1, gridWidth - 1);
-Grid.randomiseGrid(0.2)
+Grid.randomiseGrid(0.1)
 canvas.drawGrid(Grid.getTiles());
 
 let pathfindingAlgorithm = PathFinding.BFS;
