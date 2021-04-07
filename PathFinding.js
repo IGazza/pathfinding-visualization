@@ -312,7 +312,7 @@ const PathFinding = {
             if (currentWave.length > 0) {
                 currentNode = currentWave.shift();
                 if (!currentNode.pointingDirections) currentNode.pointingDirections = [];
-                
+
                 if (!this.nodesAreEqual(currentNode, endNode)) {
                     currentNode.type = "HEAD";
                     canvas.drawGrid(Grid.getTiles());
@@ -339,7 +339,7 @@ const PathFinding = {
                                 } else {
                                     currentWave.push(newNode);
                                 }
-                                
+
                             } else { // Turn count is set
                                 if (turnsToNeighbour < newNode.turnCount) {
                                     if (!currentNode.pointingDirections.includes(direction)) {
@@ -370,7 +370,7 @@ const PathFinding = {
                                     } else {
                                         currentWave.push(newNode);
                                     }
-                                    
+
                                 }
                             }
                         }
@@ -389,6 +389,52 @@ const PathFinding = {
                 } else {
                     clearInterval(intervalID);
                     canvas.drawGrid(Grid.getTiles(), "DISTANCE");
+                }
+            }
+        }, this.refreshTime);
+    },
+
+    getDistance(nodeA, nodeB) {
+        const dx = nodeA.col - nodeB.col;
+        const dy = nodeA.row - nodeB.row;
+        return Math.sqrt(dx * dx + dy * dy);
+    },
+
+    AStar(grid, cols, startNode, endNode) {
+        startNode.pathDistance = startNode.gScore = 0;
+        startNode.inQueue = true;
+        const nodes = [startNode];
+
+        const intervalID = setInterval(() => {
+            if (nodes.length > 0) {
+                nodes.sort((a, b) => a.fScore - b.fScore);
+                const currentNode = nodes.shift();
+                currentNode.type = "HEAD";
+                canvas.drawGrid(Grid.getTiles());
+
+                if (!this.nodesAreEqual(currentNode, endNode)) {
+                    for (let [direction, dir] of Object.entries(this.directionsNamed())) {
+                        const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
+                        const newNode = dir(grid, cols, currentIndex);
+                        const tileIsValid = newNode && newNode.type !== Grid.tileTypes.OBSTACLE;
+                        if (tileIsValid && !newNode.inQueue) {
+                            newNode.inQueue = true;
+                            newNode.type = "QUEUED";
+                            newNode.previous = currentNode;
+                            newNode.pointingDirection = direction;
+                            const distanceToEnd = this.getDistance(currentNode, endNode);
+                            newNode.gScore = currentNode.gScore + 1;
+                            newNode.fScore = newNode.gScore + distanceToEnd;
+                            nodes.push(newNode);
+                        }
+                    }
+                    currentNode.type = "ROUTED";
+
+                } else {
+                    clearInterval(intervalID);
+                    if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
+                        this.backtrackChain(endNode, startNode);
+                    }
                 }
             }
         }, this.refreshTime);

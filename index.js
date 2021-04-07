@@ -53,7 +53,7 @@ selectElement.onchange = function() {
             pathfindingAlgorithm = PathFinding.leastTurns;
             break;
         case "4":
-            console.warn('A* not implemented yet');
+            pathfindingAlgorithm = PathFinding.AStar;
             break;
         default:
             pathfindingAlgorithm = PathFinding.BFS;
