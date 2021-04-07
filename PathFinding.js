@@ -201,14 +201,27 @@ const PathFinding = {
     },
 
     turnsCounting(node, direction) {
-        if (node.pointingDirections.length === 0) return 0; // Starting node has no pointing direction, so no turn
+        if (node.isStart) return 0; // No turns from starting node
         if (node.previousPointingDirection === direction) return 0; // No turn needed
         return 1;
+    },
+
+    getBacktrackDirection(node, previousNode) {
+        if (previousNode.row === node.row - 1) return "UP";
+        if (previousNode.row === node.row + 1) return "DOWN";
+        if (previousNode.col === node.col - 1) return "LEFT";
+        if (previousNode.col === node.col + 1) return "RIGHT";
+        throw new Error("Unable to calculate backtrack direction: Nodes are not nearest neighbours");
     },
 
     backtrackLeastTurnsChain(endNode, startNode) {
         const path = [];
         let currentNode = endNode;
+        // If there are two routes to the end node, we need to just take one route back
+        // Take the first entry in the previous nodes array
+        let backtrackDirection
+            = this.getBacktrackDirection(endNode, endNode.previous[0]);
+
         const intervalID = setInterval(() => {
             if (!this.nodesAreEqual(currentNode, startNode) && currentNode) {
                 currentNode.type = "PATH";
@@ -216,19 +229,30 @@ const PathFinding = {
 
                 let previousNode;
                 if (currentNode.previous.length > 1) {
-                    // Get the one that doesn't turn
-                    null; // for now
-                } else {
-                    previousNode = currentNode.previous[0]; // Should only be one entry
-                }
-                // Count the turns
-                if (currentNode.pointingDirection && previousNode.pointingDirection) {
-                    if (currentNode.pointingDirection !== previousNode.pointingDirection) {
+                    // This will handle the case that two routes get to
+                    // the end at the same time It will pick the last 
+                    const possibleBackTrackDirections
+                        = currentNode.previous.map(neighbour => this.getBacktrackDirection(currentNode, neighbour));
+                    const previousNodeIndex
+                        = possibleBackTrackDirections.findIndex(direction => direction === backtrackDirection);
+
+                    previousNode = currentNode.previous[previousNodeIndex];
+                    const nextDirection = this.getBacktrackDirection(currentNode, previousNode);
+                    if (nextDirection !== backtrackDirection) {
                         this.currentPathTurnsCount++;
                     }
+                } else {
+                    previousNode = currentNode.previous[0]; // Should only be one entry
+                    const nextDirection = this.getBacktrackDirection(currentNode, previousNode);
+                    if (nextDirection !== backtrackDirection) {
+                        this.currentPathTurnsCount++;
+                    }
+                    backtrackDirection = nextDirection;
                 }
                 currentNode = previousNode;
                 this.currentPathLength++;
+                document.getElementById("path-length").innerText = this.currentPathLength;
+                document.getElementById("turns-count").innerText = this.currentPathTurnsCount;
             } else {
                 // At the start node
                 currentNode.type = "PATH";
@@ -236,18 +260,13 @@ const PathFinding = {
                 clearInterval(intervalID);
             }
             canvas.drawGrid(Grid.getTiles());
-            document.getElementById("path-length").innerText = this.currentPathLength;
-            document.getElementById("turns-count").innerText = this.currentPathTurnsCount;
         }, this.refreshTime);
     },
 
     leastTurns(grid, cols, startNode, endNode) {
-        startNode.start = true;
-        endNode.end = true;
-
         let currentNode = startNode;
-        startNode.inQueue = true;
         let turnCount = 0;
+        startNode.inQueue = true;
         startNode.turnCount = turnCount;
 
         let currentWave = [startNode];
@@ -257,41 +276,40 @@ const PathFinding = {
             // Check that there are entries in both queues
             if (currentWave.length > 0) {
                 currentNode = currentWave.shift();
-                // Initialise direction and previous links
                 if (!currentNode.pointingDirections) currentNode.pointingDirections = [];
-                if (!currentNode.previous) currentNode.previous = [];
                 
                 if (!this.nodesAreEqual(currentNode, endNode)) {
                     currentNode.type = "HEAD";
+                    canvas.drawGrid(Grid.getTiles());
+
                     for (let [direction, dir] of Object.entries(this.directionsNamed())) {
                         const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
                         const newNode = dir(grid, cols, currentIndex);
-                        // Make sure not going back on yourself
                         const tileIsValid = newNode && newNode.type !== Grid.tileTypes.OBSTACLE;
+
                         if (tileIsValid && !this.goingBackwards(direction, currentNode.previousPointingDirection)) {
-                            // Does the next node had a turn count, if not just assing it and put in the correct queue
                             const turn = this.turnsCounting(currentNode, direction);
                             const turnsToNeighbour = turnCount + turn;
 
-                            if (newNode.turnCount === undefined) { // No turn count set yet
+                            if (newNode.turnCount === undefined) { // No turn count set yet (not visited)
                                 newNode.turnCount = turnsToNeighbour;
-                                if (!newNode.previous) {
-                                    newNode.previous = [currentNode];
-                                } else {
-                                    newNode.previous.push(currentNode);
-                                }
                                 newNode.previousPointingDirection = direction;
                                 newNode.type = "QUEUED";
+                                newNode.previous = [currentNode];
+                                if (!currentNode.pointingDirections.includes(direction)) {
+                                    currentNode.pointingDirections.push(direction);
+                                }
                                 if (turn) {
                                     nextWave.push(newNode);
                                 } else {
                                     currentWave.push(newNode);
                                 }
-                                currentNode.pointingDirections.push(direction);
                                 
                             } else { // Turn count is set
                                 if (turnsToNeighbour < newNode.turnCount) {
-                                    currentNode.pointingDirections.push(direction);
+                                    if (!currentNode.pointingDirections.includes(direction)) {
+                                        currentNode.pointingDirections.push(direction);
+                                    }
                                     newNode.turnCount = turnsToNeighbour;
                                     newNode.previous = [currentNode]; // All other previous node has longer turn counts so remove them
                                     newNode.previousPointingDirection = direction;
@@ -299,16 +317,29 @@ const PathFinding = {
                                     currentWave.push(newNode);
 
                                 } else if (turnsToNeighbour === newNode.turnCount) {
-                                    currentNode.pointingDirections.push(direction);
-                                    newNode.previous.push(currentNode); // Add the current node to the list of previous nodes
+                                    if (!currentNode.pointingDirections.includes(direction)) {
+                                        currentNode.pointingDirections.push(direction);
+                                    }
+                                    const isPreviousNodeAlreadyAssigned = newNode.previous.some(node => {
+                                        const sameRow = node.row === currentNode.row;
+                                        const sameCol = node.col === currentNode.col;
+                                        if (sameRow && sameCol) return true;
+                                    });
+                                    if (!isPreviousNodeAlreadyAssigned) {
+                                        newNode.previous.push(currentNode); // Add the current node to the list of previous nodes
+                                    }
                                     newNode.previousPointingDirection = direction;
                                     newNode.type = "QUEUED";
+                                    if (turn) {
+                                        nextWave.push(newNode);
+                                    } else {
+                                        currentWave.push(newNode);
+                                    }
                                     
                                 }
                             }
                         }
                     }
-                    canvas.drawGrid(Grid.getTiles());
                     currentNode.type = "ROUTED";
                 } else {
                     clearInterval(intervalID);

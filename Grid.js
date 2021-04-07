@@ -116,6 +116,10 @@ const Grid = (function() {
                 if (tile.type !== tileTypes.OBSTACLE) {
                     tile.type = tileTypes.EMPTY;
                     tile.inQueue = false;
+                    tile.turnCount = undefined;
+                    tile.pathDistance = 0;
+                    tile.previous = undefined;
+                    tile.pointingDirections = undefined;
                 }
             }
         }
