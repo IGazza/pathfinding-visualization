@@ -34,6 +34,7 @@ resetButton.onclick = function () {
 
 const randomiseButton = document.getElementById("randomise");
 randomiseButton.onclick = function () {
+    Grid.reset();
     Grid.randomiseGrid(0.2);
     canvas.drawGrid(Grid.getTiles());
 }
@@ -46,7 +47,7 @@ selectElement.onchange = function() {
             pathfindingAlgorithm = PathFinding.BFS;
             break;
         case "2":
-            console.warn('Depth first search not implemented yet');
+            pathfindingAlgorithm = PathFinding.DFS;
             break;
         case "3":
             pathfindingAlgorithm = PathFinding.leastTurns;

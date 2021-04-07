@@ -108,6 +108,41 @@ const PathFinding = {
         }, this.refreshTime);
     },
 
+    DFS(grid, cols, startNode, endNode) {
+        startNode.start = true;
+        endNode.end = true;
+
+        let currentNode = startNode;
+        startNode.inQueue = true;
+        const nodeQueue = [];
+
+        const intervalID = setInterval(() => {
+            if (currentNode && !this.nodesAreEqual(currentNode, endNode)) {
+                for (let [direction, dir] of Object.entries(this.directionsNamed())) {
+                    const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
+                    const newNode = dir(grid, cols, currentIndex);
+                    if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
+                        newNode.pointingDirection = direction;
+                        newNode.previous = currentNode;
+                        nodeQueue.push(newNode);
+                        newNode.type = "QUEUED";
+                        newNode.inQueue = true;
+                    }
+                }
+                currentNode.type = "ROUTED";
+                currentNode = nodeQueue.pop();
+                if (currentNode) currentNode.type = "HEAD";
+                canvas.drawGrid(Grid.getTiles());
+            } else {
+                clearInterval(intervalID);
+                if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
+                    this.backtrackChain(endNode, startNode);
+                }
+                console.log(currentNode);
+            }
+        }, this.refreshTime);
+    },
+
     BFS(grid, cols, startNode, endNode) {
         startNode.start = true;
         endNode.end = true;
