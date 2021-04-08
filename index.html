@@ -22,7 +22,27 @@
     </header>
     <div class="main">
         <div class="app">
+            <div class="tile-selection">
+                <h2 class="tile-selection__title">Tiles</h2>
+                <hr>
+                <div class="options__tiles">
+                    <div class="options__option" tile-type="START">
+                        <div class="options__symbol options__symbol--blue"></div>
+                        <div class="options__name">Start</div>
+                    </div>
+                    <div class="options__option" tile-type="END">
+                        <div class="options__symbol options__symbol--red"></div>
+                        <div class="options__name">End</div>
+                    </div>
+                    <div class="options__option"  tile-type="OBSTACLE" selected="yes">
+                        <div class="options__symbol options__symbol--black"></div>
+                        <div class="options__name">Obstacle</div>
+                    </div>
+                </div>
+            </div>
+
             <canvas id="canvas"></canvas>
+
             <div class="metrics">
                 <h2 class="metrics__title">Metrics</h2>
                 <hr>
@@ -42,21 +62,6 @@
                 <option value="3">Least turns</option>
                 <option value="4">A*</option>
             </select>
-        </div>
-
-        <div class="options__tiles">
-            <div class="options__option" tile-type="START">
-                <div class="options__symbol options__symbol--blue"></div>
-                <div class="options__name">Start</div>
-            </div>
-            <div class="options__option" tile-type="END">
-                <div class="options__symbol options__symbol--red"></div>
-                <div class="options__name">End</div>
-            </div>
-            <div class="options__option"  tile-type="OBSTACLE">
-                <div class="options__symbol options__symbol--black"></div>
-                <div class="options__name">Obstacle</div>
-            </div>
         </div>
 
         <div class="options__control">

@@ -1,6 +1,6 @@
 const gridWidth = 40;
-const gridHeight = 20;
-const size = 20;
+const gridHeight = 40;
+const size = 10;
 const canvas = new Canvas("canvas");
 canvas.setTileSize(size);
 canvas.setDimensions(gridWidth * size, gridHeight * size);
