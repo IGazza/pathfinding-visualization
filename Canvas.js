@@ -39,6 +39,10 @@ class Canvas {
         });
     }
 
+    setPaintMode(paintMode) {
+        this.paintmode = paintMode;
+    }
+
     convertXYToRowCol(x, y) {
         const row = Math.floor(y / this.tileSize);
         const col = Math.floor(x / this.tileSize);
