@@ -1,9 +1,14 @@
-const gridWidth = 40;
+const gridWidth = 60;
 const gridHeight = 40;
 const size = 10;
 const canvas = new Canvas("canvas");
-canvas.setTileSize(size);
-canvas.setDimensions(gridWidth * size, gridHeight * size);
+if (window.innerWidth < 1000) {
+    canvas.setTileSize(6);
+} else {
+    canvas.setTileSize(10);
+}
+
+canvas.setGridDimensions(gridWidth, gridHeight);
 
 Grid.initialiseTiles(gridHeight, gridWidth);
 Grid.setStart(0, 0);

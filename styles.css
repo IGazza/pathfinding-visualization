@@ -69,8 +69,8 @@ canvas {
 }
 
 .options__title {
-    margin: 0 0 20px;
-    font-size: 3rem;
+    margin: 15px 0 5px;
+    font-size: 1.5rem;
     padding: 0 20px;
 }
 
@@ -84,7 +84,7 @@ canvas {
 }
 
 .options__algorithm-select {
-    font-size: 2rem;
+    font-size: 1rem;
 }
 
 .options__control {
@@ -152,4 +152,48 @@ canvas {
 }
 .options__symbol--black {
     background-color: black;
+}
+
+
+@media (max-width: 1000px) {
+    .heading__primary {
+        font-size: 3rem;
+    }
+
+    .tile-selection,
+    .metrics {
+        width: 20%;
+    }
+
+    .tile-selection__title,
+    .metrics__title {
+        font-size: 1.5rem;
+    }
+
+    .options__algorithm-select {
+        font-size: 1rem;
+    }
+
+    .options__title {
+        font-size: 1rem;
+        margin-top: 13px;
+    }
+
+    .options__option {
+        font-size: 1rem;
+        padding: 6px 10px;
+    }
+
+    .options__symbol {
+        width: 15px;
+        height: 15px;
+    }
+
+    .metric__title {
+        font-size: 1rem;
+    }
+
+    .metric__value {
+        font-size: 2rem;
+    }
 }

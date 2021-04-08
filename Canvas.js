@@ -37,6 +37,19 @@ class Canvas {
             Grid.removeObstacle(row, col);
             this.drawGrid(Grid.getTiles());
         });
+
+        window.addEventListener("resize", e => {
+            if (window.innerWidth < 1000) {
+                this.setTileSize(6);
+            } else {
+                this.setTileSize(10);
+            }
+            this.setDimensions(
+                this.gridWidth * this.tileSize,
+                this.gridHeight * this.tileSize
+            )
+            this.drawGrid(Grid.getTiles());
+        });
     }
 
     setPaintMode(paintMode) {
@@ -63,6 +76,15 @@ class Canvas {
             width: this.width,
             height: this.height
         };
+    }
+
+    setGridDimensions(width, height) {
+        this.gridWidth = width;
+        this.gridHeight = height;
+        this.setDimensions(
+            this.gridWidth * this.tileSize,
+            this.gridHeight * this.tileSize
+        );
     }
 
     getMaxDimension() {
