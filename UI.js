@@ -39,6 +39,7 @@ const UI = (function () {
 
     const resetButton = document.getElementById("reset");
     resetButton.onclick = function() {
+        PathFinding.stopSimulation();
         Grid.reset();
         canvas.drawGrid(Grid.getTiles());
     }
@@ -46,7 +47,7 @@ const UI = (function () {
     const randomiseButton = document.getElementById("randomise");
     randomiseButton.onclick = function () {
         Grid.reset();
-        Grid.randomiseGrid(0.2);
+        Grid.randomiseGrid(obstacleDensity);
         canvas.drawGrid(Grid.getTiles());
     }
 
@@ -71,6 +72,18 @@ const UI = (function () {
                 break;
         }
     }
+
+    const runSpeedInput = document.getElementById("run-speed");
+    runSpeedInput.onchange = function() {
+        PathFinding.stepTimer = Number(this.value) * 1000; // Convert to millseconds
+    }
+
+    let obstacleDensity = 0.2;
+    const obstacleDensityInput = document.getElementById("obstacle-density");
+    obstacleDensityInput.onchange = function() {
+        obstacleDensity = Number(this.value);
+    }
+
 
     return {
         resetMetrics,

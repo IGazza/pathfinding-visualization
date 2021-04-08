@@ -87,12 +87,16 @@ canvas {
     font-size: 1rem;
 }
 
-.options__control {
+.options__controls {
     flex: 3;
-    border-left: 2px solid;
     display: flex;
     justify-content: space-around;
     align-content: center;
+}
+
+.options__control {
+    flex: 1;
+    text-align: center;
 }
 
 .filler {
@@ -113,9 +117,8 @@ canvas {
 
 .options__button {
     font-size: 2.5rem;
-    width: 30%;
+    width: 90%;
     border-radius: 30px;
-    display: block;
     border-width: 5px;
 }
 
@@ -127,6 +130,16 @@ canvas {
 .options__button:hover {
     cursor: pointer;
     box-shadow: 0 0 10px rgba(0, 0, 0, 1);
+}
+
+.options__settings-title {
+    font-size: 2rem;
+    margin: 10px 0;
+}
+
+.options__settings-value {
+    font-size: 2rem;
+    width: 100px;
 }
 
 .btn--run:hover {
@@ -182,6 +195,10 @@ canvas {
     .options__option {
         font-size: 1rem;
         padding: 6px 10px;
+    }
+
+    .options__settings-title {
+        font-size: 1.5rem;
     }
 
     .options__symbol {

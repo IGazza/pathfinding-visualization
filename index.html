@@ -67,10 +67,37 @@
     <div id="options" class="options">
         
 
-        <div class="options__control">
-            <button id="run" class="options__button btn--run">Run</button>
-            <button id="reset" class="options__button btn--reset">Reset</button>
-            <button id="randomise" class="options__button btn--randomise">Randomise</button>
+        <div class="options__controls">
+            <div class="options__control">
+                <button id="run" class="options__button btn--run">Run</button>
+                <h3 class="options__settings-title">Seconds per step</h3>
+                <input
+                    id="run-speed"
+                    class="options__settings-value"
+                    type="number"
+                    name="secondPerStep"
+                    value="0.02"
+                    step="0.02"
+                    min="0.02"
+                >
+            </div>
+            <div class="options__control">
+                <button id="reset" class="options__button btn--reset">Reset</button>
+            </div>
+            <div class="options__control">
+                <button id="randomise" class="options__button btn--randomise">Randomise</button>
+                <h3 class="options__settings-title">Obstacle density</h3>
+                <input
+                    id="obstacle-density"
+                    class="options__settings-value"
+                    type="number"
+                    value="0.2"
+                    name="obstacleDensity"
+                    step="0.05"
+                    min="0"
+                    max="1"
+                >
+            </div>
         </div>
     </div>
 </body>

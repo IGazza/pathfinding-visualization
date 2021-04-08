@@ -1,5 +1,6 @@
 const PathFinding = {
-    refreshTime: 10,
+    stepTimer: 10,
+    intervalID: null,
 
     currentPathLength: 0,
     currentPathTurnsCount: 0,
@@ -73,6 +74,10 @@ const PathFinding = {
         }
     },
 
+    stopSimulation() {
+        clearInterval(this.intervalID);
+    },
+
     nodesAreEqual(node1, node2) {
         const sameRow = node1.row === node2.row;
         const sameCol = node1.col === node2.col;
@@ -83,7 +88,7 @@ const PathFinding = {
     backtrackChain(endNode, startNode) {
         const path = [];
         let currentNode = endNode;
-        const intervalID = setInterval(() => {
+        this.intervalID = setInterval(() => {
             if (!this.nodesAreEqual(currentNode, startNode) && currentNode) {
                 currentNode.type = "PATH";
                 path.push(currentNode);
@@ -100,12 +105,12 @@ const PathFinding = {
                 // At the start node
                 currentNode.type = "PATH";
                 path.push(currentNode);
-                clearInterval(intervalID);
+                clearInterval(this.intervalID);
             }
             canvas.drawGrid(Grid.getTiles());
             document.getElementById("path-length").innerText = this.currentPathLength;
             document.getElementById("turns-count").innerText = this.currentPathTurnsCount;
-        }, this.refreshTime);
+        }, this.stepTimer);
     },
 
     DFS(grid, cols, startNode, endNode) {
@@ -116,7 +121,7 @@ const PathFinding = {
         startNode.inQueue = true;
         const nodeQueue = [];
 
-        const intervalID = setInterval(() => {
+        this.intervalID = setInterval(() => {
             if (currentNode && !this.nodesAreEqual(currentNode, endNode)) {
                 for (let [direction, dir] of Object.entries(this.directionsNamed())) {
                     const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
@@ -134,13 +139,13 @@ const PathFinding = {
                 if (currentNode) currentNode.type = "HEAD";
                 canvas.drawGrid(Grid.getTiles());
             } else {
-                clearInterval(intervalID);
+                clearInterval(this.intervalID);
                 if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
                     this.backtrackChain(endNode, startNode);
                 }
                 console.log(currentNode);
             }
-        }, this.refreshTime);
+        }, this.stepTimer);
     },
 
     BFS(grid, cols, startNode, endNode) {
@@ -151,7 +156,7 @@ const PathFinding = {
         startNode.inQueue = true;
         const nodeQueue = [];
 
-        const intervalID = setInterval(() => {
+        this.intervalID = setInterval(() => {
             if (currentNode && !this.nodesAreEqual(currentNode, endNode)) {
                 for (let [direction, dir] of Object.entries(this.directionsNamed())) {
                     const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
@@ -169,13 +174,13 @@ const PathFinding = {
                 if (currentNode) currentNode.type = "HEAD";
                 canvas.drawGrid(Grid.getTiles());
             } else {
-                clearInterval(intervalID);
+                clearInterval(this.intervalID);
                 if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
                     this.backtrackChain(endNode, startNode);
                 }
                 console.log(currentNode);
             }
-        }, this.refreshTime);
+        }, this.stepTimer);
     },
 
     lee(grid, cols, startNode, endNode) {
@@ -190,7 +195,7 @@ const PathFinding = {
         let currentWave = [startNode];
         let nextWave = [];
 
-        const intervalID = setInterval(() => {
+        this.intervalID = setInterval(() => {
             // Check that there are entries in both queues
             if (currentWave.length > 0) {
                 currentNode = currentWave.shift();
@@ -210,7 +215,7 @@ const PathFinding = {
                     currentNode.type = "ROUTED";
                     canvas.drawGrid(Grid.getTiles());
                 } else {
-                    clearInterval(intervalID);
+                    clearInterval(this.intervalID);
                     this.backtrackChain(endNode, startNode);
                     canvas.drawGrid(Grid.getTiles(), "DISTANCE");
                 }
@@ -220,11 +225,11 @@ const PathFinding = {
                     nextWave = [];
                     pathDistance++;
                 } else {
-                    clearInterval(intervalID);
+                    clearInterval(this.intervalID);
                     canvas.drawGrid(Grid.getTiles(), "DISTANCE");
                 }
             }
-        }, this.refreshTime);
+        }, this.stepTimer);
     },
 
     goingBackwards(toDirection, fromDirection) {
@@ -257,7 +262,7 @@ const PathFinding = {
         let backtrackDirection
             = this.getBacktrackDirection(endNode, endNode.previous[0]);
 
-        const intervalID = setInterval(() => {
+        this.intervalID = setInterval(() => {
             if (!this.nodesAreEqual(currentNode, startNode) && currentNode) {
                 currentNode.type = "PATH";
                 path.push(currentNode);
@@ -292,10 +297,10 @@ const PathFinding = {
                 // At the start node
                 currentNode.type = "PATH";
                 path.push(currentNode);
-                clearInterval(intervalID);
+                clearInterval(this.intervalID);
             }
             canvas.drawGrid(Grid.getTiles());
-        }, this.refreshTime);
+        }, this.stepTimer);
     },
 
     leastTurns(grid, cols, startNode, endNode) {
@@ -307,7 +312,7 @@ const PathFinding = {
         let currentWave = [startNode];
         let nextWave = [];
 
-        const intervalID = setInterval(() => {
+        this.intervalID = setInterval(() => {
             // Check that there are entries in both queues
             if (currentWave.length > 0) {
                 currentNode = currentWave.shift();
@@ -377,7 +382,7 @@ const PathFinding = {
                     }
                     currentNode.type = "ROUTED";
                 } else {
-                    clearInterval(intervalID);
+                    clearInterval(this.intervalID);
                     this.backtrackLeastTurnsChain(endNode, startNode);
                     canvas.drawGrid(Grid.getTiles(), "DISTANCE");
                 }
@@ -387,11 +392,11 @@ const PathFinding = {
                     nextWave = [];
                     turnCount++;
                 } else {
-                    clearInterval(intervalID);
+                    clearInterval(this.intervalID);
                     canvas.drawGrid(Grid.getTiles(), "DISTANCE");
                 }
             }
-        }, this.refreshTime);
+        }, this.stepTimer);
     },
 
     getDistance(nodeA, nodeB) {
@@ -405,7 +410,7 @@ const PathFinding = {
         startNode.inQueue = true;
         const nodes = [startNode];
 
-        const intervalID = setInterval(() => {
+        this.intervalID = setInterval(() => {
             if (nodes.length > 0) {
                 nodes.sort((a, b) => a.fScore - b.fScore);
                 const currentNode = nodes.shift();
@@ -431,12 +436,12 @@ const PathFinding = {
                     currentNode.type = "ROUTED";
 
                 } else {
-                    clearInterval(intervalID);
+                    clearInterval(this.intervalID);
                     if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
                         this.backtrackChain(endNode, startNode);
                     }
                 }
             }
-        }, this.refreshTime);
+        }, this.stepTimer);
     }
 }
