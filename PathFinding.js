@@ -117,7 +117,7 @@ const PathFinding = {
         }, this.stepTimer);
     },
 
-    DFS(/*grid, cols, startNode, endNode*/) {
+    DFS() {
         const startNode = Grid.getStart();
         const endNode = Grid.getEnd();
         const nodeQueue = [startNode];
@@ -348,41 +348,34 @@ const PathFinding = {
         return Math.sqrt(dx * dx + dy * dy);
     },
 
-    AStar(grid, cols, startNode, endNode) {
-        startNode.pathDistance = startNode.gScore = 0;
+    AStar() {
+        this.cacheGridDimensions();
+        const startNode = Grid.getStart();
+        const endNode = Grid.getEnd();
+        const nodeQueue = [startNode];
         startNode.inQueue = true;
-        const nodes = [startNode];
+        startNode.gScore = 0;
 
         this.intervalID = setInterval(() => {
-            if (nodes.length > 0) {
-                nodes.sort((a, b) => a.fScore - b.fScore);
-                const currentNode = nodes.shift();
+            if (nodeQueue.length > 0) {
+                nodeQueue.sort((a, b) => a.fScore - b.fScore);
+                const currentNode = nodeQueue.shift(); // Take node with lowest fScore
                 currentNode.type = "HEAD";
                 canvas.drawGrid(Grid.getTiles());
 
-                if (!this.nodesAreEqual(currentNode, endNode)) {
-                    for (let [direction, dir] of Object.entries(this.namedDirections())) {
-                        const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
-                        const newNode = dir(grid, cols, currentIndex);
-                        const tileIsValid = newNode && newNode.type !== Grid.tileTypes.OBSTACLE;
-                        if (tileIsValid && !newNode.inQueue) {
-                            newNode.inQueue = true;
-                            newNode.type = "QUEUED";
-                            newNode.previous = currentNode;
-                            newNode.pointingDirection = direction;
-                            const distanceToEnd = this.getDistance(currentNode, endNode);
-                            newNode.gScore = currentNode.gScore + 1;
-                            newNode.fScore = newNode.gScore + distanceToEnd;
-                            nodes.push(newNode);
-                        }
-                    }
-                    currentNode.type = "ROUTED";
+                if (this.nodesAreEqual(currentNode, endNode)) {
+                    clearInterval(this.intervalID);
+                    this.backtrackChain(endNode, startNode);
 
                 } else {
-                    clearInterval(this.intervalID);
-                    if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
-                        this.backtrackChain(endNode, startNode);
+                    const newNodes = this.processNeighbourNodes(currentNode);
+                    for (let node of newNodes) {
+                        const distanceToEnd = this.getDistance(currentNode, endNode);
+                        node.gScore = currentNode.gScore + 1;
+                        node.fScore = node.gScore + distanceToEnd;
+                        nodeQueue.push(node);
                     }
+                    currentNode.type = "ROUTED";
                 }
             }
         }, this.stepTimer);
