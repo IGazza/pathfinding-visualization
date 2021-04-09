@@ -88,27 +88,28 @@ const PathFinding = {
         return nodesToBeAddedToQueue;
     },
 
+    checkForTurn(currentNode, previousNode) {
+        if (currentNode.pointingDirection && previousNode.pointingDirection) {
+            if (currentNode.pointingDirection !== previousNode.pointingDirection) {
+                return 1
+            }
+        }
+        return 0;
+    },
+
     backtrackChain(endNode, startNode) {
         const path = [];
         let currentNode = endNode;
         this.intervalID = setInterval(() => {
-            if (!this.nodesAreEqual(currentNode, startNode) && currentNode) {
-                currentNode.type = "PATH";
-                path.push(currentNode);
-                const previousNode = currentNode.previous;
-                // Count the turns
-                if (currentNode.pointingDirection && previousNode.pointingDirection) {
-                    if (currentNode.pointingDirection !== previousNode.pointingDirection) {
-                        this.currentPathTurnsCount++;
-                    }
-                }
-                currentNode = currentNode.previous;
-                this.currentPathLength++;
-            } else {
-                // At the start node
-                currentNode.type = "PATH";
-                path.push(currentNode);
+            currentNode.type = "PATH";
+            path.push(currentNode);
+            if (this.nodesAreEqual(currentNode, startNode)) {
                 clearInterval(this.intervalID);
+            } else {
+                const previousNode = currentNode.previous;
+                this.currentPathLength++;
+                this.currentPathTurnsCount += this.checkForTurn(currentNode, previousNode)
+                currentNode = currentNode.previous;
             }
             canvas.drawGrid(Grid.getTiles());
             document.getElementById("path-length").innerText = this.currentPathLength;
@@ -119,26 +120,23 @@ const PathFinding = {
     DFS(/*grid, cols, startNode, endNode*/) {
         const startNode = Grid.getStart();
         const endNode = Grid.getEnd();
-        let currentNode = startNode;
-        const nodeQueue = [currentNode];
-        currentNode.inQueue = true;
+        const nodeQueue = [startNode];
+        startNode.inQueue = true;
         this.cacheGridDimensions();
 
         this.intervalID = setInterval(() => {
             if (nodeQueue.length > 0) {
-                currentNode = nodeQueue.pop();
+                const currentNode = nodeQueue.pop();
                 currentNode.type = "HEAD";
                 canvas.drawGrid(Grid.getTiles());
 
-                if (!this.nodesAreEqual(currentNode, endNode)) {
+                if (this.nodesAreEqual(currentNode, endNode)) {
+                    clearInterval(this.intervalID);
+                    this.backtrackChain(endNode, startNode);
+                } else {
                     const newNodes = this.processNeighbourNodes(currentNode);
                     for (let node of newNodes) nodeQueue.push(node);
                     currentNode.type = "ROUTED";
-                } else {
-                    clearInterval(this.intervalID);
-                    if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
-                        this.backtrackChain(endNode, startNode);
-                    }
                 }
             } else {
                 // End node is unreachable: stop simulation
@@ -147,40 +145,35 @@ const PathFinding = {
         }, this.stepTimer);
     },
 
-    BFS(grid, cols, startNode, endNode) {
-        startNode.start = true;
-        endNode.end = true;
 
-        let currentNode = startNode;
+    BFS() {
+        const startNode = Grid.getStart();
+        const endNode = Grid.getEnd();
+        const nodeQueue = [startNode];
         startNode.inQueue = true;
-        const nodeQueue = [];
+        this.cacheGridDimensions();
 
         this.intervalID = setInterval(() => {
-            if (currentNode && !this.nodesAreEqual(currentNode, endNode)) {
-                for (let [direction, dir] of Object.entries(this.namedDirections())) {
-                    const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
-                    const newNode = dir(grid, cols, currentIndex);
-                    if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
-                        newNode.pointingDirection = direction;
-                        newNode.previous = currentNode;
-                        nodeQueue.push(newNode);
-                        newNode.type = "QUEUED";
-                        newNode.inQueue = true;
-                    }
-                }
-                currentNode.type = "ROUTED";
-                currentNode = nodeQueue.shift();
-                if (currentNode) currentNode.type = "HEAD";
+            if (nodeQueue.length > 0) {
+                const currentNode = nodeQueue.shift();
+                currentNode.type = "HEAD";
                 canvas.drawGrid(Grid.getTiles());
-            } else {
-                clearInterval(this.intervalID);
-                if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
+
+                if (this.nodesAreEqual(currentNode, endNode)) {
+                    clearInterval(this.intervalID);
                     this.backtrackChain(endNode, startNode);
+                } else {
+                    const newNodes = this.processNeighbourNodes(currentNode);
+                    for (let node of newNodes) nodeQueue.push(node);
+                    currentNode.type = "ROUTED";
                 }
-                console.log(currentNode);
+            } else {
+                // End node is unreachable: stop simulation
+                clearInterval(this.intervalID);
             }
         }, this.stepTimer);
     },
+
 
     goingBackwards(toDirection, fromDirection) {
         if (toDirection === "RIGHT" && fromDirection === "LEFT") return true;
