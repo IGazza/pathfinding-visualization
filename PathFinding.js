@@ -246,88 +246,104 @@ const PathFinding = {
         }, this.stepTimer);
     },
 
-    leastTurns(grid, cols, startNode, endNode) {
-        let currentNode = startNode;
-        let turnCount = 0;
-        startNode.inQueue = true;
-        startNode.turnCount = turnCount;
+    getValidNeighbourNodeLeastTurns(currentNode, getNodeInDirectionFunc) {
+        const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col);
+        const newNode = getNodeInDirectionFunc(currentIndex);
+        const isDirectionBackwards = this.goingBackwards(direction, currentNode.previousPointingDirection)
+        if (newNode && newNode.type === "EMPTY" && !newNode.inQueue && !isDirectionBackwards) {
+            return newNode;
+        }
+        return null;
+    },
 
+    processNeighbourNodesLeastTurns(currentNode) {
+        for (let [direction, dir] of Object.entries(this.namedDirections())) {
+            const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
+            const newNode = dir(grid, cols, currentIndex);
+            const tileIsValid = newNode && newNode.type !== Grid.tileTypes.OBSTACLE;
+
+            if (tileIsValid && !) {
+                const turn = this.turnsCounting(currentNode, direction);
+                const turnsToNeighbour = turnCount + turn;
+
+                if (newNode.turnCount === undefined) { // No turn count set yet (not visited)
+                    newNode.turnCount = turnsToNeighbour;
+                    newNode.previousPointingDirection = direction;
+                    newNode.type = "QUEUED";
+                    newNode.previous = [currentNode];
+                    if (!currentNode.pointingDirections.includes(direction)) {
+                        currentNode.pointingDirections.push(direction);
+                    }
+                    if (turn) {
+                        nextWave.push(newNode);
+                    } else {
+                        currentWave.push(newNode);
+                    }
+
+                } else { // Turn count is set
+                    if (turnsToNeighbour < newNode.turnCount) {
+                        if (!currentNode.pointingDirections.includes(direction)) {
+                            currentNode.pointingDirections.push(direction);
+                        }
+                        newNode.turnCount = turnsToNeighbour;
+                        newNode.previous = [currentNode]; // All other previous node has longer turn counts so remove them
+                        newNode.previousPointingDirection = direction;
+                        newNode.type = "QUEUED";
+                        currentWave.push(newNode);
+
+                    } else if (turnsToNeighbour === newNode.turnCount) {
+                        if (!currentNode.pointingDirections.includes(direction)) {
+                            currentNode.pointingDirections.push(direction);
+                        }
+                        const isPreviousNodeAlreadyAssigned = newNode.previous.some(node => {
+                            const sameRow = node.row === currentNode.row;
+                            const sameCol = node.col === currentNode.col;
+                            if (sameRow && sameCol) return true;
+                        });
+                        if (!isPreviousNodeAlreadyAssigned) {
+                            newNode.previous.push(currentNode); // Add the current node to the list of previous nodes
+                        }
+                        newNode.previousPointingDirection = direction;
+                        newNode.type = "QUEUED";
+                        if (turn) {
+                            nextWave.push(newNode);
+                        } else {
+                            currentWave.push(newNode);
+                        }
+
+                    }
+                }
+            }
+        }
+    },
+
+    leastTurns() {
+        const startNode = Grid.getStart();
+        const endNode = Grid.getEnd();
+        let currentNode = startNode;
+        let turnCount = startNode.turnCount = 0;
         let currentWave = [startNode];
         let nextWave = [];
+        startNode.pointingDirections = [];
+        startNode.previousNodes = [];
 
         this.intervalID = setInterval(() => {
             // Check that there are entries in both queues
             if (currentWave.length > 0) {
                 currentNode = currentWave.shift();
-                if (!currentNode.pointingDirections) currentNode.pointingDirections = [];
+                currentNode.type = "HEAD";
+                canvas.drawGrid(Grid.getTiles());
 
-                if (!this.nodesAreEqual(currentNode, endNode)) {
-                    currentNode.type = "HEAD";
-                    canvas.drawGrid(Grid.getTiles());
 
-                    for (let [direction, dir] of Object.entries(this.namedDirections())) {
-                        const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
-                        const newNode = dir(grid, cols, currentIndex);
-                        const tileIsValid = newNode && newNode.type !== Grid.tileTypes.OBSTACLE;
-
-                        if (tileIsValid && !this.goingBackwards(direction, currentNode.previousPointingDirection)) {
-                            const turn = this.turnsCounting(currentNode, direction);
-                            const turnsToNeighbour = turnCount + turn;
-
-                            if (newNode.turnCount === undefined) { // No turn count set yet (not visited)
-                                newNode.turnCount = turnsToNeighbour;
-                                newNode.previousPointingDirection = direction;
-                                newNode.type = "QUEUED";
-                                newNode.previous = [currentNode];
-                                if (!currentNode.pointingDirections.includes(direction)) {
-                                    currentNode.pointingDirections.push(direction);
-                                }
-                                if (turn) {
-                                    nextWave.push(newNode);
-                                } else {
-                                    currentWave.push(newNode);
-                                }
-
-                            } else { // Turn count is set
-                                if (turnsToNeighbour < newNode.turnCount) {
-                                    if (!currentNode.pointingDirections.includes(direction)) {
-                                        currentNode.pointingDirections.push(direction);
-                                    }
-                                    newNode.turnCount = turnsToNeighbour;
-                                    newNode.previous = [currentNode]; // All other previous node has longer turn counts so remove them
-                                    newNode.previousPointingDirection = direction;
-                                    newNode.type = "QUEUED";
-                                    currentWave.push(newNode);
-
-                                } else if (turnsToNeighbour === newNode.turnCount) {
-                                    if (!currentNode.pointingDirections.includes(direction)) {
-                                        currentNode.pointingDirections.push(direction);
-                                    }
-                                    const isPreviousNodeAlreadyAssigned = newNode.previous.some(node => {
-                                        const sameRow = node.row === currentNode.row;
-                                        const sameCol = node.col === currentNode.col;
-                                        if (sameRow && sameCol) return true;
-                                    });
-                                    if (!isPreviousNodeAlreadyAssigned) {
-                                        newNode.previous.push(currentNode); // Add the current node to the list of previous nodes
-                                    }
-                                    newNode.previousPointingDirection = direction;
-                                    newNode.type = "QUEUED";
-                                    if (turn) {
-                                        nextWave.push(newNode);
-                                    } else {
-                                        currentWave.push(newNode);
-                                    }
-
-                                }
-                            }
-                        }
-                    }
-                    currentNode.type = "ROUTED";
-                } else {
+                if (this.nodesAreEqual(currentNode, endNode)) {
                     clearInterval(this.intervalID);
                     this.backtrackLeastTurnsChain(endNode, startNode);
                     canvas.drawGrid(Grid.getTiles(), "DISTANCE");
+
+                } else {
+                    const newNodes = this.processNeighbourNodesLeastTurns(currentNode);
+                    // Decide which list they go in...
+                    currentNode.type = "ROUTED";                    
                 }
             } else {
                 if (nextWave.length > 0) {
@@ -340,6 +356,42 @@ const PathFinding = {
                 }
             }
         }, this.stepTimer);
+    },
+
+    iterateWave(wave, nextWave) {
+        wave = nextWave;
+        nextWave = [];
+    },
+
+    leastTurnsUsingPositionReference() {
+        this.cacheGridDimensions();
+        const startNode = {
+            row: Grid.getStart().row,
+            col: Grid.getStart().col
+        }
+        const endNode = {
+            row: Grid.getEnd().row,
+            col: Grid.getEnd().col
+        }
+        const currentWave = [startNode];
+        const nextWave = [];
+
+        this.intervalID = setInterval(() => {
+            if (currentWave.length > 0) {
+                const currentNode = currentWave.shift();
+                // Run the pathfinding
+            } else {
+                // Check if the next wave has entries
+                if (nextWave.length > 0) {
+                    this.iterateWave(currentWave, nextWave);
+                } else {
+                    // No nodes reached: end simulation
+                    clearInterval(this.intervalID);
+                }
+            }
+
+        }, this.stepTimer)
+
     },
 
     getDistance(nodeA, nodeB) {

@@ -40,7 +40,7 @@ const Grid = (function() {
 
     const clearEndTiles = () => {
         if (tiles[endNodeIndex]) {
-            tiles[endNodeIndex].isStart = false;
+            tiles[endNodeIndex].isEnd = false;
         }
     }
 
