@@ -10,66 +10,45 @@ const PathFinding = {
         this.currentPathTurnsCount = 0;
     },
 
-    convertIndexToRowCol(index, cols) {
-        const row = Math.floor(index / cols);
-        const col = Math.floor(index % cols);
+    convertIndexToRowCol(index) {
+        const row = Math.floor(index / this.cols);
+        const col = Math.floor(index % this.cols);
         return { row, col };
     },
 
-    convertRowColToIndex(row, col, numOfCols) {
-        return row * numOfCols + col;
+    convertRowColToIndex(row, col) {
+        return row * this.cols + col;
     },
 
-    directions() {
-        return [
-            (grid, cols, index) => { // UP
-                const { row, col } = this.convertIndexToRowCol(index, cols);
-                const newIndex = this.convertRowColToIndex(row - 1, col, cols);
-                return grid[newIndex];
-            },
-            (grid, cols, index) => { // RIGHT
-                const { row, col } = this.convertIndexToRowCol(index, cols);
-                if (col === cols - 1) return null; // Index can wrap at the border
-                const newIndex = this.convertRowColToIndex(row, col + 1, cols);
-                return grid[newIndex];
-            },
-            (grid, cols, index) => { // DOWN
-                const { row, col } = this.convertIndexToRowCol(index, cols);
-                const newIndex = this.convertRowColToIndex(row + 1, col, cols);
-                return grid[newIndex];
-            },
-            (grid, cols, index) => {// LEFT
-                const { row, col } = this.convertIndexToRowCol(index, cols);
-                if (col === 0) return null; // Index can wrap at the border
-                const newIndex = this.convertRowColToIndex(row, col - 1, cols);
-                return grid[newIndex];
-            },
-        ]
+    cacheGridDimensions() {
+        const { rows, cols } = Grid.getDimensions();
+        this.rows = rows;
+        this.cols = cols;
     },
 
-    directionsNamed() {
+    namedDirections() {
         return {
-            UP: (grid, cols, index) => { // UP
-                const { row, col } = this.convertIndexToRowCol(index, cols);
-                const newIndex = this.convertRowColToIndex(row - 1, col, cols);
-                return grid[newIndex];
+            UP: (index) => {
+                const { row, col } = this.convertIndexToRowCol(index);
+                const newIndex = this.convertRowColToIndex(row - 1, col);
+                return Grid.getTileAtIndex(newIndex);
             },
-            RIGHT: (grid, cols, index) => { // RIGHT
-                const { row, col } = this.convertIndexToRowCol(index, cols);
-                if (col === cols - 1) return null; // Index can wrap at the border
-                const newIndex = this.convertRowColToIndex(row, col + 1, cols);
-                return grid[newIndex];
+            RIGHT: (index) => {
+                const { row, col } = this.convertIndexToRowCol(index);
+                if (col === this.cols - 1) return null; // Index can wrap at the border
+                const newIndex = this.convertRowColToIndex(row, col + 1);
+                return Grid.getTileAtIndex(newIndex);
             },
-            DOWN: (grid, cols, index) => { // DOWN
-                const { row, col } = this.convertIndexToRowCol(index, cols);
-                const newIndex = this.convertRowColToIndex(row + 1, col, cols);
-                return grid[newIndex];
+            DOWN: (index) => {
+                const { row, col } = this.convertIndexToRowCol(index);
+                const newIndex = this.convertRowColToIndex(row + 1, col);
+                return Grid.getTileAtIndex(newIndex);
             },
-            LEFT: (grid, cols, index) => {// LEFT
-                const { row, col } = this.convertIndexToRowCol(index, cols);
+            LEFT: (index) => {
+                const { row, col } = this.convertIndexToRowCol(index);
                 if (col === 0) return null; // Index can wrap at the border
-                const newIndex = this.convertRowColToIndex(row, col - 1, cols);
-                return grid[newIndex];
+                const newIndex = this.convertRowColToIndex(row, col - 1);
+                return Grid.getTileAtIndex(newIndex);
             },
         }
     },
@@ -83,6 +62,30 @@ const PathFinding = {
         const sameCol = node1.col === node2.col;
         if (sameRow && sameCol) return true;
         return false;
+    },
+
+    getValidNeighbourNode(currentNode, getNodeInDirectionFunc) {
+        const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col);
+        const newNode = getNodeInDirectionFunc(currentIndex);
+        if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
+            return newNode;
+        }
+        return null;
+    },
+
+    processNeighbourNodes(currentNode) {
+        const nodesToBeAddedToQueue = [];
+        for (let [direction, getIndexOfNodeInDirectionFunc] of Object.entries(this.namedDirections())) {
+            const newNode = this.getValidNeighbourNode(currentNode, getIndexOfNodeInDirectionFunc);
+            if (newNode) {
+                newNode.pointingDirection = direction;
+                newNode.previous = currentNode;
+                newNode.type = "QUEUED";
+                newNode.inQueue = true;
+                nodesToBeAddedToQueue.push(newNode);
+            }
+        }
+        return nodesToBeAddedToQueue;
     },
 
     backtrackChain(endNode, startNode) {
@@ -113,37 +116,33 @@ const PathFinding = {
         }, this.stepTimer);
     },
 
-    DFS(grid, cols, startNode, endNode) {
-        startNode.start = true;
-        endNode.end = true;
-
+    DFS(/*grid, cols, startNode, endNode*/) {
+        const startNode = Grid.getStart();
+        const endNode = Grid.getEnd();
         let currentNode = startNode;
-        startNode.inQueue = true;
-        const nodeQueue = [];
+        const nodeQueue = [currentNode];
+        currentNode.inQueue = true;
+        this.cacheGridDimensions();
 
         this.intervalID = setInterval(() => {
-            if (currentNode && !this.nodesAreEqual(currentNode, endNode)) {
-                for (let [direction, dir] of Object.entries(this.directionsNamed())) {
-                    const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
-                    const newNode = dir(grid, cols, currentIndex);
-                    if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
-                        newNode.pointingDirection = direction;
-                        newNode.previous = currentNode;
-                        nodeQueue.push(newNode);
-                        newNode.type = "QUEUED";
-                        newNode.inQueue = true;
+            if (nodeQueue.length > 0) {
+                currentNode = nodeQueue.pop();
+                currentNode.type = "HEAD";
+                canvas.drawGrid(Grid.getTiles());
+
+                if (!this.nodesAreEqual(currentNode, endNode)) {
+                    const newNodes = this.processNeighbourNodes(currentNode);
+                    for (let node of newNodes) nodeQueue.push(node);
+                    currentNode.type = "ROUTED";
+                } else {
+                    clearInterval(this.intervalID);
+                    if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
+                        this.backtrackChain(endNode, startNode);
                     }
                 }
-                currentNode.type = "ROUTED";
-                currentNode = nodeQueue.pop();
-                if (currentNode) currentNode.type = "HEAD";
-                canvas.drawGrid(Grid.getTiles());
             } else {
+                // End node is unreachable: stop simulation
                 clearInterval(this.intervalID);
-                if (currentNode && this.nodesAreEqual(currentNode, endNode)) {
-                    this.backtrackChain(endNode, startNode);
-                }
-                console.log(currentNode);
             }
         }, this.stepTimer);
     },
@@ -158,7 +157,7 @@ const PathFinding = {
 
         this.intervalID = setInterval(() => {
             if (currentNode && !this.nodesAreEqual(currentNode, endNode)) {
-                for (let [direction, dir] of Object.entries(this.directionsNamed())) {
+                for (let [direction, dir] of Object.entries(this.namedDirections())) {
                     const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
                     const newNode = dir(grid, cols, currentIndex);
                     if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
@@ -179,55 +178,6 @@ const PathFinding = {
                     this.backtrackChain(endNode, startNode);
                 }
                 console.log(currentNode);
-            }
-        }, this.stepTimer);
-    },
-
-    lee(grid, cols, startNode, endNode) {
-        startNode.start = true;
-        endNode.end = true;
-
-        let currentNode = startNode;
-        startNode.inQueue = true;
-        let pathDistance = 0;
-        startNode.pathDistance = pathDistance;
-
-        let currentWave = [startNode];
-        let nextWave = [];
-
-        this.intervalID = setInterval(() => {
-            // Check that there are entries in both queues
-            if (currentWave.length > 0) {
-                currentNode = currentWave.shift();
-                if (!this.nodesAreEqual(currentNode, endNode)) {
-                    currentNode.type = "HEAD";
-                    for (let dir of this.directions()) {
-                        const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
-                        const newNode = dir(grid, cols, currentIndex);
-                        if (newNode && newNode.type === "EMPTY" && !newNode.inQueue) {
-                            newNode.previous = currentNode;
-                            newNode.type = "QUEUED";
-                            newNode.inQueue = true;
-                            newNode.pathDistance = pathDistance;
-                            nextWave.push(newNode);
-                        }
-                    }
-                    currentNode.type = "ROUTED";
-                    canvas.drawGrid(Grid.getTiles());
-                } else {
-                    clearInterval(this.intervalID);
-                    this.backtrackChain(endNode, startNode);
-                    canvas.drawGrid(Grid.getTiles(), "DISTANCE");
-                }
-            } else {
-                if (nextWave.length > 0) {
-                    currentWave = [...nextWave];
-                    nextWave = [];
-                    pathDistance++;
-                } else {
-                    clearInterval(this.intervalID);
-                    canvas.drawGrid(Grid.getTiles(), "DISTANCE");
-                }
             }
         }, this.stepTimer);
     },
@@ -322,7 +272,7 @@ const PathFinding = {
                     currentNode.type = "HEAD";
                     canvas.drawGrid(Grid.getTiles());
 
-                    for (let [direction, dir] of Object.entries(this.directionsNamed())) {
+                    for (let [direction, dir] of Object.entries(this.namedDirections())) {
                         const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
                         const newNode = dir(grid, cols, currentIndex);
                         const tileIsValid = newNode && newNode.type !== Grid.tileTypes.OBSTACLE;
@@ -418,7 +368,7 @@ const PathFinding = {
                 canvas.drawGrid(Grid.getTiles());
 
                 if (!this.nodesAreEqual(currentNode, endNode)) {
-                    for (let [direction, dir] of Object.entries(this.directionsNamed())) {
+                    for (let [direction, dir] of Object.entries(this.namedDirections())) {
                         const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
                         const newNode = dir(grid, cols, currentIndex);
                         const tileIsValid = newNode && newNode.type !== Grid.tileTypes.OBSTACLE;

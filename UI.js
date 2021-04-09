@@ -29,12 +29,7 @@ const UI = (function () {
     runButton.onclick = function () {
         PathFinding.resetMetrics();
         resetMetrics();
-        pathfindingAlgorithm.bind(PathFinding)(
-            Grid.getTiles(),
-            gridWidth,
-            Grid.getStart(),
-            Grid.getEnd()
-        );
+        pathfindingAlgorithm.bind(PathFinding)();
     }
 
     const resetButton = document.getElementById("reset");

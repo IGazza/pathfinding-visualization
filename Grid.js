@@ -1,5 +1,11 @@
 const Grid = (function() {
 
+    let tiles = [];
+    let rows = 0;
+    let cols = 0;
+    let startNodeIndex = null;
+    let endNodeIndex = null;
+
     const tileTypes = {
         EMPTY: "EMPTY",
         OBSTACLE: "OBSTACLE"
@@ -27,20 +33,20 @@ const Grid = (function() {
     }
 
     const clearStartTiles = () => {
-        for (let tile of tiles) tile.isStart = false;
+        if (tiles[startNodeIndex]) {
+            tiles[startNodeIndex].isStart = false;
+        }
     }
 
     const clearEndTiles = () => {
-        for (let tile of tiles) tile.isEnd = false;
+        if (tiles[endNodeIndex]) {
+            tiles[endNodeIndex].isStart = false;
+        }
     }
 
     const clearObstacles = () => {
-        for (let tile of tiles)  tile.type = tileTypes.EMPTY;
+        for (let tile of tiles) tile.type = tileTypes.EMPTY;
     }
-
-    let tiles = [];
-    let rows = 0;
-    let cols = 0;
 
     return {
         tileTypes,
@@ -49,10 +55,18 @@ const Grid = (function() {
             return tiles;
         },
 
+        getTileAtIndex(index) {
+            return tiles[index];
+        },
+
         initialiseTiles(newRows, newCols) {
             rows = newRows;
             cols = newCols;
             tiles = generateTiles(rows, cols);
+        },
+
+        getDimensions() {
+            return { rows, cols };
         },
 
         setObstacle(row, col) {
@@ -68,7 +82,7 @@ const Grid = (function() {
         },
 
         getStart() {
-            return tiles.find(tile => tile.isStart);
+            return tiles[startNodeIndex];
         },
 
         setStart(row, col) {
@@ -77,6 +91,7 @@ const Grid = (function() {
                 tile.type = tileTypes.EMPTY;
                 clearStartTiles();
                 tile.isStart = true;
+                startNodeIndex = row * cols + col;
             }
         },
 
@@ -86,6 +101,7 @@ const Grid = (function() {
                 tile.type = tileTypes.EMPTY;
                 clearEndTiles();
                 tile.isEnd = true;
+                endNodeIndex = row * cols + col;
             }
         },
 
@@ -94,8 +110,6 @@ const Grid = (function() {
         },
 
         getMaxPathDistance() {
-            // Find the max pathDistance
-            // THen get element attaining that
             const tilePathDistances = tiles.map(tile => tile.pathDistance || 0);
             return Math.max.apply(null, tilePathDistances);
         },

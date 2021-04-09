@@ -81,6 +81,7 @@ class Canvas {
     setGridDimensions(width, height) {
         this.gridWidth = width;
         this.gridHeight = height;
+        
         this.setDimensions(
             this.gridWidth * this.tileSize,
             this.gridHeight * this.tileSize
