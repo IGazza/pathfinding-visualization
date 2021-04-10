@@ -53,6 +53,47 @@ const PathFinding = {
         }
     },
 
+    namedDirectionsPositions() {
+        return {
+            UP: (node) => {
+                if (node.row > 0) {
+                    return {
+                        row: node.row - 1,
+                        col: node.col
+                    }
+                }
+                return null;
+            },
+            RIGHT: (node) => {
+                if (node.col < this.cols) {
+                    return {
+                        row: node.row,
+                        col: node.col + 1
+                    }
+                }
+                return null;
+            },
+            DOWN: (node) => {
+                if (node.row < this.rows) {
+                    return {
+                        row: node.row + 1,
+                        col: node.col
+                    }
+                }
+                return null;
+            },
+            LEFT: (node) => {
+                if (node.col > 0) {
+                    return {
+                        row: node.row,
+                        col: node.col - 1
+                    }
+                }
+                return null;
+            },
+        }
+    },
+
     stopSimulation() {
         clearInterval(this.intervalID);
     },
@@ -183,7 +224,7 @@ const PathFinding = {
         return false;
     },
 
-    turnsCounting(node, direction) {
+    getTurnsToNeighbour(node, direction) {
         if (node.isStart) return 0; // No turns from starting node
         if (node.previousPointingDirection === direction) return 0; // No turn needed
         return 1;
@@ -257,18 +298,15 @@ const PathFinding = {
     },
 
     processNeighbourNodesLeastTurns(currentNode) {
-        for (let [direction, dir] of Object.entries(this.namedDirections())) {
-            const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col, cols);
-            const newNode = dir(grid, cols, currentIndex);
-            const tileIsValid = newNode && newNode.type !== Grid.tileTypes.OBSTACLE;
+        for (let [direction, getIndexOfNodeInDirectionFunc] of Object.entries(this.namedDirections())) {
+            const newNode = this.getValidNeighbourNodeLeastTurns(currentNode, getIndexOfNodeInDirectionFunc);
 
-            if (tileIsValid && !) {
-                const turn = this.turnsCounting(currentNode, direction);
+            if (newNode) {
+                const turn = this.getTurnsToNeighbour(currentNode, direction);
                 const turnsToNeighbour = turnCount + turn;
 
                 if (newNode.turnCount === undefined) { // No turn count set yet (not visited)
                     newNode.turnCount = turnsToNeighbour;
-                    newNode.previousPointingDirection = direction;
                     newNode.type = "QUEUED";
                     newNode.previous = [currentNode];
                     if (!currentNode.pointingDirections.includes(direction)) {
@@ -287,7 +325,6 @@ const PathFinding = {
                         }
                         newNode.turnCount = turnsToNeighbour;
                         newNode.previous = [currentNode]; // All other previous node has longer turn counts so remove them
-                        newNode.previousPointingDirection = direction;
                         newNode.type = "QUEUED";
                         currentWave.push(newNode);
 
@@ -303,7 +340,6 @@ const PathFinding = {
                         if (!isPreviousNodeAlreadyAssigned) {
                             newNode.previous.push(currentNode); // Add the current node to the list of previous nodes
                         }
-                        newNode.previousPointingDirection = direction;
                         newNode.type = "QUEUED";
                         if (turn) {
                             nextWave.push(newNode);
@@ -363,6 +399,86 @@ const PathFinding = {
         nextWave = [];
     },
 
+    getDirection(node, previousNode) {
+        const rowDiff = node.row - previousNode.row;
+        const colDiff = node.col - previousNode.col;
+        if (rowDiff === 0 && colDiff > 0) return "RIGTH";
+        if (rowDiff === 0 && colDiff < 0) return "LEFT";
+        if (colDiff === 0 && rowDiff < 0) return "UP";
+        if (colDiff === 0 && rowDiff > 0) return "DOWN";
+    },
+
+    getTurnsToNeighbour(node, direction) {
+        if (node.previous) { //Start node has no previous node: no turns from starting node
+            const previousDirection = this.getDirection(node, node.previous);
+            if (previousDirection === direction) return 0;
+        }
+        return 1;
+    },
+
+    getValidNeighbourNodeLeastTurns(currentNode, getNodeInDirectionFunc) {
+        const newNode = getNodeInDirectionFunc(currentNode);
+        const isPreviousNode = this.nodesAreEqual(currentNode.previous, newNode);
+        if (newNode && newNode.type === "EMPTY" && !isPreviousNode) {
+            newNode.previous = currentNode;
+            return newNode;
+        }
+        return null;
+    },
+
+    getGridNode(node) {
+        const index = node.row * this.cols + node.col;
+        return Grid.getTileAtIndex(index);
+    },
+
+    processNeighbourNodesLeastTurns(currentNode) {
+        const currentWave = [];
+        const nextWave = [];
+        for (let [direction, getIndexOfNodeInDirectionFunc] of Object.entries(this.namedDirectionsPositions())) {
+            const newNode = this.getValidNeighbourNodeLeastTurns(currentNode, getIndexOfNodeInDirectionFunc);
+
+            if (newNode) {
+                const turn = this.getTurnsToNeighbour(currentNode, direction);
+                const turnsToNeighbour = currentNode.turnCount + turn;
+                newNode.turnCount = turnsToNeighbour;
+                const gridNode = this.getGridNode(newNode);
+
+                if (gridNode.turnCount === undefined) {
+                    gridNode.previousNodes = [currentNode];
+                    gridNode.turnCount = turnsToNeighbour;
+                    gridNode.type = "QUEUED";
+                    if (turn) {
+                        currentWave.push(newNode);
+                    } else {
+                        nextWave.push(newNode);
+                    }
+
+                } else {
+                    if (turnsToNeighbour < gridNode.turnCount) {
+                        gridNode.previousNodes = [currentNode];
+                        gridNode.turnCount = turnsToNeighbour;
+                        newNode.type = "QUEUED";
+                        currentWave.push(newNode)
+
+                    } else if (turnsToNeighbour === gridNode.turnCount) {
+                        const isPreviousNodeAlreadyAdded
+                            = gridNode.previousNodes.some(node => this.nodesAreEqual(node, newNode));
+                        if (isPreviousNodeAlreadyAdded) {
+                            gridNode.previousNodes.push(currentNode); // Add the current node to the list of previous nodes
+                        }
+                        newNode.type = "QUEUED";
+                        if (turn) {
+                            currentWave.push(newNode);
+                        } else {
+                            nextWave.push(newNode);
+                        }
+                    }
+                }
+            }
+        }
+        return { currentWave, nextWave };
+    },
+
     leastTurnsUsingPositionReference() {
         this.cacheGridDimensions();
         const startNode = {
@@ -379,6 +495,23 @@ const PathFinding = {
         this.intervalID = setInterval(() => {
             if (currentWave.length > 0) {
                 const currentNode = currentWave.shift();
+                currentNode.type = "HEAD";
+
+                if (this.nodesAreEqual(currentNode, endNode)) {
+                    clearInterval(this.intervalID);
+                    // Backtrack
+                } else {
+                    const { currentWave: noTurnNodes, nextWave: oneTurnNodes }
+                        = this.getValidNeighbourNodeLeastTurns(currentNode);
+
+                    for (let node of noTurnNodes) {
+                        currentWave.push(node);
+                    }
+                    for (let node of oneTurnNodes) {
+                        nextWave.push(node);
+                    }
+                    currentNode.type = "ROUTED";
+                }
                 // Run the pathfinding
             } else {
                 // Check if the next wave has entries
