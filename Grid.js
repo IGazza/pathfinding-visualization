@@ -59,6 +59,11 @@ const Grid = (function() {
             return tiles[index];
         },
 
+        getTileAtPosition(row, col) {
+            const index = row * cols + col;
+            return tiles[index];
+        },
+
         initialiseTiles(newRows, newCols) {
             rows = newRows;
             cols = newCols;
