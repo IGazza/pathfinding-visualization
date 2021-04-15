@@ -74,6 +74,14 @@ const Grid = (function() {
             return { rows, cols };
         },
 
+        getRows() {
+            return rows;
+        },
+
+        getCols() {
+            return cols;
+        },
+
         setObstacle(row, col) {
             const tile = getTile(row, col);
             if (tile && !tile.isStart && !tile.isEnd) {

@@ -11,19 +11,13 @@ const PathFinding = {
     },
 
     convertIndexToRowCol(index) {
-        const row = Math.floor(index / this.cols);
-        const col = Math.floor(index % this.cols);
+        const row = Math.floor(index / Grid.getCols());
+        const col = Math.floor(index % Grid.getCols());
         return { row, col };
     },
 
     convertRowColToIndex(row, col) {
-        return row * this.cols + col;
-    },
-
-    cacheGridDimensions() {
-        const { rows, cols } = Grid.getDimensions();
-        this.rows = rows;
-        this.cols = cols;
+        return row * Grid.getCols() + col;
     },
 
     namedDirections() {
@@ -35,7 +29,7 @@ const PathFinding = {
             },
             RIGHT: (index) => {
                 const { row, col } = this.convertIndexToRowCol(index);
-                if (col === this.cols - 1) return null; // Index can wrap at the border
+                if (col === Grid.getCols() - 1) return null; // Index can wrap at the border
                 const newIndex = this.convertRowColToIndex(row, col + 1);
                 return Grid.getTileAtIndex(newIndex);
             },
@@ -65,7 +59,7 @@ const PathFinding = {
                 return null;
             },
             RIGHT: (node) => {
-                if (node.col < this.cols - 1) {
+                if (node.col < Grid.getCols() - 1) {
                     return {
                         row: node.row,
                         col: node.col + 1
@@ -74,7 +68,7 @@ const PathFinding = {
                 return null;
             },
             DOWN: (node) => {
-                if (node.row < this.rows - 1) {
+                if (node.row < Grid.getRows() - 1) {
                     return {
                         row: node.row + 1,
                         col: node.col
@@ -163,7 +157,6 @@ const PathFinding = {
         const endNode = Grid.getEnd();
         const nodeQueue = [startNode];
         startNode.inQueue = true;
-        this.cacheGridDimensions();
 
         this.intervalID = setInterval(() => {
             if (nodeQueue.length > 0) {
@@ -192,7 +185,6 @@ const PathFinding = {
         const endNode = Grid.getEnd();
         const nodeQueue = [startNode];
         startNode.inQueue = true;
-        this.cacheGridDimensions();
 
         this.intervalID = setInterval(() => {
             if (nodeQueue.length > 0) {
@@ -254,7 +246,7 @@ const PathFinding = {
     },
 
     getGridNode(node) {
-        const index = node.row * this.cols + node.col;
+        const index = node.row * Grid.getCols() + node.col;
         return Grid.getTileAtIndex(index);
     },
 
@@ -360,8 +352,10 @@ const PathFinding = {
         }, this.stepTimer);
     },
 
+    /**
+     * 
+     */
     leastTurns() {
-        this.cacheGridDimensions();
         const startNode = {
             row: Grid.getStart().row,
             col: Grid.getStart().col,
@@ -418,7 +412,6 @@ const PathFinding = {
     },
 
     AStar() {
-        this.cacheGridDimensions();
         const startNode = Grid.getStart();
         const endNode = Grid.getEnd();
         const nodeQueue = [startNode];
