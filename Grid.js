@@ -1,3 +1,7 @@
+/**
+ * Object for controlling the data structure, and assigning data during
+ * the pathfinding algorithm.
+ */
 const Grid = (function() {
 
     let tiles = [];
@@ -55,14 +59,20 @@ const Grid = (function() {
             return tiles;
         },
 
+
+
         getTileAtIndex(index) {
             return tiles[index];
         },
+
+
 
         getTileAtPosition(row, col) {
             const index = row * cols + col;
             return tiles[index];
         },
+
+
 
         initialiseTiles(newRows, newCols) {
             rows = newRows;
@@ -70,17 +80,25 @@ const Grid = (function() {
             tiles = generateTiles(rows, cols);
         },
 
+
+
         getDimensions() {
             return { rows, cols };
         },
+
+
 
         getRows() {
             return rows;
         },
 
+
+
         getCols() {
             return cols;
         },
+
+
 
         setObstacle(row, col) {
             const tile = getTile(row, col);
@@ -89,14 +107,20 @@ const Grid = (function() {
             }
         },
 
+
+
         removeObstacle(row, col) {
             const tile = getTile(row, col);
             tile.type = tileTypes.EMPTY;
         },
 
+
+
         getStart() {
             return tiles[startNodeIndex];
         },
+
+
 
         setStart(row, col) {
             const tile = getTile(row, col);
@@ -108,6 +132,8 @@ const Grid = (function() {
             }
         },
 
+
+
         setEnd(row, col) {
             const tile = getTile(row, col);
             if (tile && !tile.isStart && !tile.isEnd) {
@@ -118,14 +144,20 @@ const Grid = (function() {
             }
         },
 
+
+
         getEnd() {
             return tiles.find(tile => tile.isEnd);
         },
+
+
 
         getMaxPathDistance() {
             const tilePathDistances = tiles.map(tile => tile.pathDistance || 0);
             return Math.max.apply(null, tilePathDistances);
         },
+
+
 
         randomiseGrid(probability) {
             clearObstacles();
@@ -138,6 +170,8 @@ const Grid = (function() {
             }
         },
 
+
+        
         reset() {
             for (let tile of tiles) {
                 if (tile.type !== tileTypes.OBSTACLE) {

@@ -1,3 +1,7 @@
+/**
+ * Class to create a canvas for controlling graphics used in the path
+ * finding algorithm, and adding event listeners for interaction with the canvas element.
+ */
 class Canvas {
 
     constructor(canvasID) {
@@ -12,6 +16,8 @@ class Canvas {
         this.paintmode = Grid.tileTypes.OBSTACLE;
         this.setupEventListeners();
     }
+
+
 
     setupEventListeners() {
         this.element.addEventListener("click", e => {
@@ -52,9 +58,13 @@ class Canvas {
         });
     }
 
+
+
     setPaintMode(paintMode) {
         this.paintmode = paintMode;
     }
+
+
 
     convertXYToRowCol(x, y) {
         const row = Math.floor(y / this.tileSize);
@@ -62,14 +72,20 @@ class Canvas {
         return { row, col };
     }
 
+
+
     setDimensions(width, height) {
         this.width = this.element.width = width;
         this.height = this.element.height = height;
     }
 
+
+
     setTileSize(size) {
         this.tileSize = size;
     }
+
+
 
     getDimensions() {
         return {
@@ -77,6 +93,8 @@ class Canvas {
             height: this.height
         };
     }
+
+
 
     setGridDimensions(width, height) {
         this.gridWidth = width;
@@ -88,9 +106,13 @@ class Canvas {
         );
     }
 
+
+
     getMaxDimension() {
         return Math.max(this.height, this.width);
     }
+
+
 
     drawGrid(grid, mode = "DEFAULT") {
         const maxDistance = Grid.getMaxPathDistance();
@@ -111,6 +133,8 @@ class Canvas {
         }
     }
 
+
+
     getTileColour(tile) {
         if (tile.isEnd) return "red";
         if (tile.isStart) return "blue";
@@ -130,6 +154,8 @@ class Canvas {
         }
     }
 
+
+
     getTileDistanceColour(tile, maxPathDistance) {
         if (tile.isEnd) return "red";
         if (tile.isStart) return "blue";
@@ -146,6 +172,8 @@ class Canvas {
         return colour;
     }
 
+
+
     convertRGBToHex(rgb) {
         const rgbInHexFormat = rgb.map(c => {
             let channelString = c.toString(16);
@@ -157,6 +185,8 @@ class Canvas {
         const hexColourString = rgbInHexFormat.join('');
         return `#${hexColourString}`;
     }
+
+    
 
     clear() {
         this.context.fillStyle = "grey";
