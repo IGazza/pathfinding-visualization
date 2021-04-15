@@ -1,25 +1,55 @@
 const PathFinding = {
     stepTimer: 10,
     intervalID: null,
-
     currentPathLength: 0,
     currentPathTurnsCount: 0,
 
+
+    
+    /**
+     * Resets the path length and turn counts metric for the
+     * current path being calculated.
+     */
     resetMetrics() {
         this.currentPathLength = 0;
         this.currentPathTurnsCount = 0;
     },
 
+
+
+    /**
+     * Converts a grid tiles index into a row, col position
+     * @param {number} index 
+     * @returns {row: number, col: number}
+     */
     convertIndexToRowCol(index) {
         const row = Math.floor(index / Grid.getCols());
         const col = Math.floor(index % Grid.getCols());
         return { row, col };
     },
 
+
+    
+    /**
+     * Converts a row and column to the index in the Grid tiles array
+     * @param {number} row 
+     * @param {number} col 
+     * @returns {number}
+     */
     convertRowColToIndex(row, col) {
         return row * Grid.getCols() + col;
     },
 
+
+
+    /**
+     * Function for obtaining named direction functions used to get neighbours for
+     * a specified node by using its index. This interfaces directly with the Grid
+     * Object to get tiles using the index.
+     * @returns {Object} Object containing function for each cardinal direction.
+     * Each function uses a node index to calculate the new node if it is within
+     * the valid range.
+     */
     namedDirections() {
         return {
             UP: (index) => {
@@ -47,6 +77,15 @@ const PathFinding = {
         }
     },
 
+
+
+    /**
+     * Function for obtaining named direction functions used to get neighbours for
+     * a specified node by using its position.
+     * @returns {Object} Object containing function for each cardinal direction.
+     * Each function uses a nodes position to calculate a neighbour node if it
+     * exists in the valid range.
+     */
     namedDirectionsPositions() {
         return {
             UP: (node) => {
@@ -88,10 +127,24 @@ const PathFinding = {
         }
     },
 
+
+
+    /**
+     * Clears the current interval
+     */
     stopSimulation() {
         clearInterval(this.intervalID);
     },
 
+
+
+    /**
+     * Checks whether two nodes are equal based on their
+     * row and column position
+     * @param {node} node1 
+     * @param {node} node2 
+     * @returns {boolean}
+     */
     nodesAreEqual(node1, node2) {
         const sameRow = node1.row === node2.row;
         const sameCol = node1.col === node2.col;
@@ -99,6 +152,15 @@ const PathFinding = {
         return false;
     },
 
+
+
+    /**
+     * Takes a node and a direction function and checks whether the node in that 
+     * direction is valid. If so, it returns the node, otherwise it returns null.
+     * @param {node} currentNode 
+     * @param {Function} getNodeInDirectionFunc 
+     * @returns {node|null}
+     */
     getValidNeighbourNode(currentNode, getNodeInDirectionFunc) {
         const currentIndex = this.convertRowColToIndex(currentNode.row, currentNode.col);
         const newNode = getNodeInDirectionFunc(currentIndex);
@@ -108,6 +170,14 @@ const PathFinding = {
         return null;
     },
 
+
+
+    /**
+     * Considers each neighbour of the current node, and if valid, adds
+     * them to an array of nodes that should be added to the pathfinding queue.
+     * @param {node} currentNode 
+     * @returns {Array<node>}
+     */
     processNeighbourNodes(currentNode) {
         const nodesToBeAddedToQueue = [];
         for (let [direction, getIndexOfNodeInDirectionFunc] of Object.entries(this.namedDirections())) {
@@ -123,6 +193,15 @@ const PathFinding = {
         return nodesToBeAddedToQueue;
     },
 
+
+
+    /**
+     * Checks if a turn is needed to reach the neighbour of the specified node, using
+     * the current direction the node is heading in.
+     * @param {node} currentNode 
+     * @param {node} previousNode 
+     * @returns {0|1}
+     */
     checkForTurn(currentNode, previousNode) {
         if (currentNode.pointingDirection && previousNode.pointingDirection) {
             if (currentNode.pointingDirection !== previousNode.pointingDirection) {
@@ -132,6 +211,14 @@ const PathFinding = {
         return 0;
     },
 
+
+
+    /**
+     * Traverses the nodes chain made in the pathfinding algorithms 
+     * and displays the path on a regular interval.
+     * @param {Grid.tile} endNode 
+     * @param {Grid.tile} startNode 
+     */
     backtrackChain(endNode, startNode) {
         const path = [];
         let currentNode = endNode;
@@ -152,6 +239,12 @@ const PathFinding = {
         }, this.stepTimer);
     },
 
+
+
+    /**
+     * Iteratively calculates and display the steps in the
+     * Depth First Search pathfinding algorithm.
+     */
     DFS() {
         const startNode = Grid.getStart();
         const endNode = Grid.getEnd();
@@ -180,6 +273,11 @@ const PathFinding = {
     },
 
 
+
+    /**
+     * Iteratively calculates and display the steps in the
+     * Bread First Search pathfinding algorithm.
+     */
     BFS() {
         const startNode = Grid.getStart();
         const endNode = Grid.getEnd();
@@ -207,6 +305,15 @@ const PathFinding = {
         }, this.stepTimer);
     },
 
+
+
+    /**
+     * Takes a node and its previous node connection to determine which direction
+     * the node chain is currently heading in.
+     * @param {node} node 
+     * @param {node} previousNode 
+     * @returns {"RIGHT"|"UP"|"DOWN"|"LEFT"}
+     */
     getDirection(node, previousNode) {
         const rowDiff = node.row - previousNode.row;
         const colDiff = node.col - previousNode.col;
@@ -216,6 +323,15 @@ const PathFinding = {
         if (colDiff === 0 && rowDiff > 0) return "DOWN";
     },
 
+
+
+    /**
+     * Checks if a turn is needed to reach the neighbour of the specified node, using
+     * the current direction the node is heading in.
+     * @param {node} node 
+     * @param {string} direction 
+     * @returns {0|1}
+     */
     getTurnsToNeighbour(node, direction) {
         if (node.previous) {
             const previousDirection = this.getDirection(node, node.previous);
@@ -228,6 +344,15 @@ const PathFinding = {
         return 0; // Start node have no previous node, so no turning required from it
     },
 
+
+
+    /**
+     * Takes a node and a direction function and checks whether the node in that 
+     * direction is valid. If so, it returns the node, otherwise it returns null.
+     * @param {node} currentNode 
+     * @param {Function} getNodeInDirectionFunc 
+     * @returns {node|null}
+     */
     getValidNeighbourNodeLeastTurns(currentNode, getNodeInDirectionFunc) {
         const newNode = getNodeInDirectionFunc(currentNode);
         if (newNode) {
@@ -245,11 +370,17 @@ const PathFinding = {
         return null;
     },
 
-    getGridNode(node) {
-        const index = node.row * Grid.getCols() + node.col;
-        return Grid.getTileAtIndex(index);
-    },
 
+
+    /**
+     * Considers each neighbour of the current node, and if valid, assigns 
+     * them to the corresponding array based on whether or not a turn is 
+     * required to reach the new node.
+     * @param {*} currentNode 
+     * @returns {Object} Object
+     * @returns {Array<node>} Object.nodesNotRequiringTurn Valid neighbours of the current node which do not require a turn to reach
+     * @returns {Array<node>} Object.nodesRequiringTurn Valid neighbours of the current node which do require a turn to reach
+     */
     processNeighbourNodesLeastTurns(currentNode) {
         const nodesNotRequiringTurn = [];
         const nodesRequiringTurn = [];
@@ -309,6 +440,15 @@ const PathFinding = {
         };
     },
 
+
+
+    /**
+     * Traverses the nodes chain made in the leastTurns algorithm
+     * and displays the path on a regular interval. Contains logic needed
+     * to determine the shortest path when backtracking.
+     * @param {Grid.tile} endNode 
+     * @param {Grid.tile} startNode 
+     */
     backtrackChainLeastTurns(endNode, startNode) {
         const path = [];
         let currentNode = endNode;
@@ -352,8 +492,12 @@ const PathFinding = {
         }, this.stepTimer);
     },
 
+
+
     /**
-     * 
+     * Iteratively calculates and display the steps in a
+     * least turn pathfinding algorithm. Finding a path that
+     * has the minimum turns to the end node.
      */
     leastTurns() {
         const startNode = {
@@ -405,12 +549,22 @@ const PathFinding = {
 
     },
 
+    /**
+     * Returns the Euclidean distance between two nodes
+     * @param {node} nodeA 
+     * @param {node} nodeB 
+     * @returns {number}
+     */
     getDistance(nodeA, nodeB) {
         const dx = nodeA.col - nodeB.col;
         const dy = nodeA.row - nodeB.row;
         return Math.sqrt(dx * dx + dy * dy);
     },
 
+    /**
+     * Iteratively calculates and display the steps the A* 
+     * pathfinding algorithm.
+     */
     AStar() {
         const startNode = Grid.getStart();
         const endNode = Grid.getEnd();
