@@ -298,7 +298,7 @@ const PathFinding = {
                         const previousNodeIsAlreadyAdded
                             = newGridNode.previousNodes.some(node => this.nodesAreEqual(node, newNode));
                         if (!previousNodeIsAlreadyAdded) {
-                            newGridNode.previousNodes.push(currentNode); // Add the current node to the list of previous nodes
+                            newGridNode.previousNodes.push(currentGridNode); // Add the current node to the list of previous nodes
                         }
                         newGridNode.type = "QUEUED";
                         if (turn) {
