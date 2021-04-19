@@ -1,3 +1,7 @@
+/**
+ * Class to create a canvas for controlling graphics used in the path
+ * finding algorithm, and adding event listeners for interaction with the canvas element.
+ */
 class Canvas {
 
     constructor(canvasID) {
@@ -8,10 +12,13 @@ class Canvas {
         this.context = this.element.getContext("2d");
         this.width = this.element.width;
         this.height = this.element.height;
-        this.size = 10;
+        this.tileSize = 10;
         this.paintmode = Grid.tileTypes.OBSTACLE;
+        this.setDimensions();
         this.setupEventListeners();
     }
+
+
 
     setupEventListeners() {
         this.element.addEventListener("click", e => {
@@ -52,9 +59,13 @@ class Canvas {
         });
     }
 
+
+
     setPaintMode(paintMode) {
         this.paintmode = paintMode;
     }
+
+
 
     convertXYToRowCol(x, y) {
         const row = Math.floor(y / this.tileSize);
@@ -62,14 +73,21 @@ class Canvas {
         return { row, col };
     }
 
-    setDimensions(width, height) {
-        this.width = this.element.width = width;
-        this.height = this.element.height = height;
+
+
+    setDimensions() {
+        const { rows, cols } = Grid.getDimensions();
+        this.width = this.element.width = cols * this.tileSize;
+        this.height = this.element.height = rows * this.tileSize;;
     }
+
+
 
     setTileSize(size) {
         this.tileSize = size;
     }
+
+
 
     getDimensions() {
         return {
@@ -78,19 +96,13 @@ class Canvas {
         };
     }
 
-    setGridDimensions(width, height) {
-        this.gridWidth = width;
-        this.gridHeight = height;
-        
-        this.setDimensions(
-            this.gridWidth * this.tileSize,
-            this.gridHeight * this.tileSize
-        );
-    }
+
 
     getMaxDimension() {
         return Math.max(this.height, this.width);
     }
+
+
 
     drawGrid(grid, mode = "DEFAULT") {
         const maxDistance = Grid.getMaxPathDistance();
@@ -111,6 +123,8 @@ class Canvas {
         }
     }
 
+
+
     getTileColour(tile) {
         if (tile.isEnd) return "red";
         if (tile.isStart) return "blue";
@@ -130,6 +144,8 @@ class Canvas {
         }
     }
 
+
+
     getTileDistanceColour(tile, maxPathDistance) {
         if (tile.isEnd) return "red";
         if (tile.isStart) return "blue";
@@ -146,6 +162,8 @@ class Canvas {
         return colour;
     }
 
+
+
     convertRGBToHex(rgb) {
         const rgbInHexFormat = rgb.map(c => {
             let channelString = c.toString(16);
@@ -157,6 +175,8 @@ class Canvas {
         const hexColourString = rgbInHexFormat.join('');
         return `#${hexColourString}`;
     }
+
+    
 
     clear() {
         this.context.fillStyle = "grey";

@@ -1,3 +1,8 @@
+/**
+ * An object used to setup event handling of the pathfinding controls,
+ * and display metrics for the path calculated by the pathfinding 
+ * algorithm.
+ */
 const UI = (function () {
 
     const tileSelectors = [...document.querySelectorAll('.options__option')];
@@ -12,15 +17,26 @@ const UI = (function () {
     const pathLengthDiv = document.getElementById("path-length");
     const turnCountDiv = document.getElementById("turns-count");
 
+    /**
+     * Resets the value of the path length and turn count elements
+     */
     const resetMetrics = () => {
         pathLengthDiv.innerText = 0;
         turnCountDiv.innerText = 0;
     }
 
+    /**
+     * Sets the value of the path length element
+     * @param {number} pathLength 
+     */
     const setPathLength = (pathLength) => {
         pathLengthDiv.innerText = pathLength
     }
 
+    /**
+     * Sets the value of the turn count element
+     * @param {number} turnCount 
+     */
     const setTurnCount = (turnCount) => {
         turnCountDiv.innerText = turnCount;
     }
