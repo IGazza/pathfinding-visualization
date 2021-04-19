@@ -1,17 +1,9 @@
-const gridWidth = 65;
-const gridHeight = 40;
-const size = 40;
-const canvas = new Canvas("canvas");
-if (window.innerWidth < 1000) {
-    canvas.setTileSize(6);
-} else {
-    canvas.setTileSize(10);
-}
-
-canvas.setGridDimensions(gridWidth, gridHeight);
-
-Grid.initialiseTiles(gridHeight, gridWidth);
+const ROWS = 40;
+const COLUMNS = 65;
+Grid.initialiseTiles(ROWS, COLUMNS);
 Grid.setStart(0, 0);
-Grid.setEnd(gridHeight - 1, gridWidth - 1);
+Grid.setEnd(ROWS - 1, COLUMNS - 1);
 Grid.randomiseGrid(0.2)
+
+const canvas = new Canvas("canvas");
 canvas.drawGrid(Grid.getTiles());

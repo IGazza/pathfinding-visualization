@@ -12,8 +12,9 @@ class Canvas {
         this.context = this.element.getContext("2d");
         this.width = this.element.width;
         this.height = this.element.height;
-        this.size = 10;
+        this.tileSize = 10;
         this.paintmode = Grid.tileTypes.OBSTACLE;
+        this.setDimensions();
         this.setupEventListeners();
     }
 
@@ -74,9 +75,10 @@ class Canvas {
 
 
 
-    setDimensions(width, height) {
-        this.width = this.element.width = width;
-        this.height = this.element.height = height;
+    setDimensions() {
+        const { rows, cols } = Grid.getDimensions();
+        this.width = this.element.width = cols * this.tileSize;
+        this.height = this.element.height = rows * this.tileSize;;
     }
 
 
@@ -92,18 +94,6 @@ class Canvas {
             width: this.width,
             height: this.height
         };
-    }
-
-
-
-    setGridDimensions(width, height) {
-        this.gridWidth = width;
-        this.gridHeight = height;
-        
-        this.setDimensions(
-            this.gridWidth * this.tileSize,
-            this.gridHeight * this.tileSize
-        );
     }
 
 
